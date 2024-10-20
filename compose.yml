@@ -1,0 +1,24 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    command:
+      - "--label-enable"
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/config.json # Auth for private registry
+
+  next:
+    image: ghcr.io/laurimaila/homepage:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3500:3000"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    environment:
+      - NODE_ENV=production
+    restart: always
