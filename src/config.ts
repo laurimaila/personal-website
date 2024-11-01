@@ -6,11 +6,11 @@ const buildConfig = () => {
             copyright: 'Lauri Maila',
             metadata: {
                 title: {
-                    absolute: 'Homepage',
-                    default: 'Homepage',
-                    template: `%s - Homepage`,
+                    absolute: 'Lauri Maila',
+                    default: 'Lauri Maila',
+                    template: `%s - Lauri Maila`,
                 },
-                description: 'Some description',
+                description: 'A blog and personal website',
             },
         },
     };

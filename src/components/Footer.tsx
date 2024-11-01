@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 
 const Footer: FC = () => {
     return (
-        <section className="mt-8 md:mt-16 mb-12">
+        <section className="mt-8 md:mt-16 mb-12 mx-5">
             <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
                     © Lauri Maila {new Date().getFullYear()}

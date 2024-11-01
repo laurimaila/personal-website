@@ -4,6 +4,7 @@ export interface BlogPost {
     readonly id: number;
     slug: string;
     title: string;
+    banner?: string;
     content: string;
     date_created: string;
     date_updated?: string;

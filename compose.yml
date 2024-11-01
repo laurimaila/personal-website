@@ -11,7 +11,7 @@ services:
       - ~/.docker/config.json:/config.json # Auth for private registry
 
   next:
-    image: ghcr.io/laurimaila/homepage:latest
+    image: ghcr.io/laurimaila/personal-website:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,3 +22,4 @@ services:
     environment:
       - NODE_ENV=production
     restart: always
+    platform: linux/arm64

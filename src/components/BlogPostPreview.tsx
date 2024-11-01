@@ -12,10 +12,11 @@ export const BlogPostPreview = ({ post }: { post: BlogPost }) => {
             <Link href={`/blog/${post.slug}`}>
                 <div className="aspect-[16/9] relative">
                     <Image
+                        unoptimized
+                        fill
                         alt={post.title}
                         className="object-cover"
-                        src={'/images/placeholder.webp'}
-                        fill
+                        src={ post.banner ? `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${post.banner}?format=avif` : '/images/placeholder.webp'}
                     />
                 </div>
             </Link>

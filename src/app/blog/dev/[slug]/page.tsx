@@ -5,6 +5,7 @@ import matter from 'gray-matter';
 
 interface PostFrontmatter {
     title: string;
+    banner: string;
     date_created: string;
     date_updated: string;
     author: string;
@@ -28,6 +29,7 @@ const DevBlogPage = async (props: { params: Promise<{ slug: string }> }) => {
     const devPost = {
         id: 9001,
         title: fm.title,
+        banner: fm.banner ? fm.banner : '',
         slug: params.slug,
         date_created: fm.date_created,
         date_updated: fm.date_updated,

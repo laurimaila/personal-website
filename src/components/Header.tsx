@@ -58,7 +58,7 @@ export const Navigation: FC = () => {
                     <SheetTrigger>
                         <Menu size="24" />
                     </SheetTrigger>
-                    <SheetContent>
+                    <SheetContent className="w-52">
                         <SheetHeader>
                             <SheetDescription>
                                 {menuItems.map((item) => (
@@ -84,9 +84,9 @@ export const Navigation: FC = () => {
 
 const Header: FC = () => {
     return (
-        <section className="flex items-center justify-between mt-8 md:mt-16 mb-12">
+        <section className="flex items-center justify-between mt-8 md:mt-16 mb-12 mx-5 md:mx-0">
             <Link href="/">
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-tight">
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tighter leading-tight">
                     {config.blog.name}
                 </h1>
             </Link>
