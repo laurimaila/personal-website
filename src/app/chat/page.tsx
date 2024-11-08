@@ -19,7 +19,7 @@ const ChatPage = () => {
         const fetchChatHistory = async () => {
             try {
                 const response = await fetch(
-                    `https://${process.env.NEXT_PUBLIC_BACKEND_URL}/api/messages`,
+                    `${process.env.NEXT_PUBLIC_BACKEND_REST}/api/messages`,
                 );
                 if (!response.ok) {
                     throw new Error('Failed to fetch chat history');
@@ -51,10 +51,10 @@ const ChatPage = () => {
 
     // WebSocket handling
     useEffect(() => {
-        const websocket = new WebSocket(`wss://${process.env.NEXT_PUBLIC_BACKEND_URL}/api/ws`);
+        const websocket = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_WS ?? '');
 
         websocket.onopen = () => {
-            console.log('Connected to WebSocket');
+            //console.log('Connected to WebSocket');
             setConnected(true);
             setError(null);
         };
@@ -62,7 +62,7 @@ const ChatPage = () => {
         websocket.onmessage = (event) => {
             try {
                 const data: WSPayload<ChatMessage | WSError> = JSON.parse(event.data);
-                console.log('Received:', data);
+                //console.log('Received from WebSocket:', data);
 
                 switch (data.type) {
                     case 'message':
@@ -71,11 +71,9 @@ const ChatPage = () => {
                     case 'error':
                         const errorPayload = data.payload as WSError;
                         setError(errorPayload.message);
-                        // Optionally show error in UI (e.g., toast notification)
-                        console.error('Message error:', errorPayload.message);
+                        //console.error('Message error:', errorPayload.message);
                         break;
                     case 'status':
-                        console.log('Status update:', data.payload);
                         break;
                     default:
                         console.warn('Unknown message type:', data.type);
@@ -101,7 +99,7 @@ const ChatPage = () => {
         };
     }, []);
 
-    // Send message handler
+    // Send WebSocket message
     const sendMessage = useCallback(() => {
         if (ws && inputMessage.trim() && connected && isUsernameSet) {
             const message: Omit<ChatMessage, 'id' | 'createdAt'> = {
@@ -109,10 +107,10 @@ const ChatPage = () => {
                 creator: username,
             };
             ws.send(JSON.stringify(message));
-            console.log('Sent:', message);
+            //console.log('Sent to WebSocket:', message);
             setInputMessage('');
         }
-    }, [ws, inputMessage, connected, isUsernameSet]);
+    }, [ws, inputMessage, connected, isUsernameSet, username]);
 
     const handleUsernameSubmit = () => {
         if (username.trim()) {
@@ -131,13 +129,16 @@ const ChatPage = () => {
     };
 
     const formatTimestamp = (timestamp: string) => {
-        return new Date(timestamp).toLocaleString([], {
+        const date = new Date(timestamp);
+        return `${date.toLocaleDateString('fi', {
             year: 'numeric',
             month: 'numeric',
             day: 'numeric',
+        })} ${date.toLocaleTimeString('fi', {
             hour: '2-digit',
             minute: '2-digit',
-        });
+            hour12: false,
+        })}`;
     };
 
     if (!isUsernameSet) {

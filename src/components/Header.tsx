@@ -25,6 +25,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
     { name: 'Blog', href: '/' },
     { name: 'About', href: '/about' },
+    { name: 'Chat', href: '/chat' },
     {
         name: 'Github',
         href: 'https://github.com/laurimaila',
