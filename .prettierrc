@@ -3,6 +3,7 @@
     "bracketSpacing": true,
     "jsxBracketSameLine": true,
     "printWidth": 100,
+    "endOfLine": "lf",
     "singleQuote": true,
     "trailingComma": "all",
     "tabWidth": 4
