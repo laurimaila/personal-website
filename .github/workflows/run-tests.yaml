@@ -3,9 +3,6 @@ run-name: Run tests - ${{ github.event.head_commit.message }}
 
 on:
   push:
-  pull_request:
-    branches:
-      - 'main'
 
 jobs:
   test:
