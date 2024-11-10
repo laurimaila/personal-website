@@ -1,9 +1,8 @@
-name: Run Tests
+name: Run tests
+run-name: Run tests - ${{ github.event.head_commit.message }}
 
 on:
   push:
-    branches:
-      - 'main'
   pull_request:
     branches:
       - 'main'
@@ -16,6 +15,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: npm install
       - run: npm run test

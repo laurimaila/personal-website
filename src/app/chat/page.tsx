@@ -176,7 +176,7 @@ const ChatPage = () => {
         <div className="container mx-auto px-5 max-w-2xl h-screen py-8">
             <div className="flex flex-col h-full bg-gray-900 rounded-lg shadow-md">
                 <div className="py-4 px-6 border-b">
-                    <h1 className="text-2xl font-bold">Chatroom</h1>
+                    <h1 className="text-2xl font-bold">Chat</h1>
                     <div className="flex justify-between items-center mt-2">
                         <span className="text-sm">Chatting as: {username}</span>
                         <span
