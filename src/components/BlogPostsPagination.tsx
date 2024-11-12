@@ -1,3 +1,4 @@
+// TODO: Fix this component and enable it
 import {
   Pagination,
   PaginationContent,

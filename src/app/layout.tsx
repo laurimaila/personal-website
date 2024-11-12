@@ -29,10 +29,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html>
+            <head>
+                <link rel="manifest" href="/site.webmanifest" />
+            </head>
             <body
                 className={cn(
-                    'min-h-screen bg-background font-sans antialiased max-w-6xl m-auto',
+                    'bg-background m-auto min-h-screen max-w-6xl font-sans antialiased',
                     fontSans.variable,
                 )}>
                 <ThemeProvider
@@ -41,7 +44,7 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange>
                     <Header />
-                    <main>{children}</main>
+                    <main className="min-h-[70vh] md:min-h-[65vh]">{children}</main>
                     <Footer />
                 </ThemeProvider>
             </body>

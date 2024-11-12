@@ -10,27 +10,33 @@ export const BlogPostPreview = ({ post }: { post: BlogPost }) => {
     return (
         <div className="break-words">
             <Link href={`/blog/${post.slug}`}>
-                <div className="aspect-[16/9] relative">
+                <div className="relative aspect-[16/9]">
                     <Image
                         unoptimized
+                        priority={true}
                         fill
                         alt={post.title}
                         className="object-cover"
-                        src={ post.banner ? `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${post.banner}?format=avif` : '/images/placeholder.webp'}
+                        src={
+                            post.banner
+                                ? `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${post.banner}?format=avif`
+                                : '/images/placeholder.webp'
+                        }
                     />
                 </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-3 md:col-span-2">
+                    <h2 className="text-foreground font-sans text-2xl font-semibold tracking-tighter md:text-3xl">
+                        {post.title}
+                    </h2>
+                    <div className="prose lg:prose-lg text-muted-foreground italic tracking-tighter">
+                        {formatDate(post.date_created, 'dd MMMM yyyy')}
+                    </div>
+                    <div className="prose lg:prose-lg text-muted-foreground line-clamp-4 leading-relaxed md:text-lg">
+                        {post.author}
+                    </div>
+                </div>
             </Link>
-            <div className="grid grid-cols-1 gap-3 md:col-span-2 mt-4">
-                <h2 className="font-sans font-semibold tracking-tighter text-primary text-2xl md:text-3xl">
-                    <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                </h2>
-                <div className="prose lg:prose-lg italic tracking-tighter text-muted-foreground">
-                    {formatDate(post.date_created, 'dd MMMM yyyy')}
-                </div>
-                <div className="prose lg:prose-lg leading-relaxed md:text-lg line-clamp-4 text-muted-foreground">
-                    {post.author}
-                </div>
-            </div>
         </div>
     );
 };
@@ -42,7 +48,7 @@ export const BlogPostsPreview: FC<{ posts: BlogPost[]; className?: string }> = (
     return (
         <div
             className={cn(
-                'grid grid-cols-1 gap-16 lg:gap-28 md:grid-cols-2 md:my-16 my-8',
+                'my-8 grid grid-cols-1 gap-16 md:my-16 md:grid-cols-2 lg:gap-28',
                 className,
             )}>
             {posts.map((post) => (

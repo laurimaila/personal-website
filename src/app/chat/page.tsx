@@ -1,5 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import type { ChatMessage, WSPayload, WSError } from '@/lib/types/message.ts';
 
 const ChatPage = () => {
@@ -33,7 +36,6 @@ const ChatPage = () => {
                 setIsLoading(false);
             }
         };
-
         fetchChatHistory();
     }, []);
 
@@ -44,12 +46,13 @@ const ChatPage = () => {
         }
     };
 
-    // Scroll to bottom when new message is received
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        if (messages.length > 0 && isUsernameSet) {
+            setTimeout(scrollToBottom, 100);
+        }
+    }, [messages, isUsernameSet, scrollToBottom]);
 
-    // WebSocket handling
+    // WebSocket functionality
     useEffect(() => {
         const websocket = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_WS ?? '');
 
@@ -99,7 +102,6 @@ const ChatPage = () => {
         };
     }, []);
 
-    // Send WebSocket message
     const sendMessage = useCallback(() => {
         if (ws && inputMessage.trim() && connected && isUsernameSet) {
             const message: Omit<ChatMessage, 'id' | 'createdAt'> = {
@@ -112,7 +114,10 @@ const ChatPage = () => {
         }
     }, [ws, inputMessage, connected, isUsernameSet, username]);
 
-    const handleUsernameSubmit = () => {
+    const handleUsernameSubmit = (e?: React.FormEvent) => {
+        if (e) {
+            e.preventDefault();
+        }
         if (username.trim()) {
             setIsUsernameSet(true);
         }
@@ -143,56 +148,65 @@ const ChatPage = () => {
 
     if (!isUsernameSet) {
         return (
-            <div className="container mx-auto px-5 max-w-2xl min-h-screen flex items-start justify-center">
-                <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-md">
-                    <h1 className="text-2xl font-bold mb-6 text-center">Join chat</h1>
-                    <div className="flex flex-col items-center gap-5 w-full px-4">
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.repeat) {
-                                    e.preventDefault();
-                                    handleKeyPress(e);
-                                }
-                            }}
-                            placeholder="Enter your name..."
-                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <button
-                            onClick={handleUsernameSubmit}
-                            disabled={!username.trim()}
-                            className="inline-flex px-8 py-3 bg-blue-500 text-white disabled:text-gray-500 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
-                            Join
-                        </button>
-                    </div>
-                </div>
+            <div className="flex-column container mx-auto flex max-w-2xl items-start justify-center px-1 pt-12 md:px-5">
+                <Card className="w-full max-w-md rounded-lg p-5 shadow-md">
+                    <CardHeader>
+                        <CardTitle className="text-center text-2xl">Join chat</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex w-full flex-col items-center gap-5 px-4 sm:flex-row">
+                        <form
+                            onSubmit={handleUsernameSubmit}
+                            className="flex w-full flex-col items-center gap-5 px-4 sm:flex-row">
+                            <Input
+                                type="text"
+                                minLength={2}
+                                maxLength={30}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.repeat) {
+                                        e.preventDefault();
+                                        handleKeyPress(e);
+                                    }
+                                }}
+                                placeholder="Enter name here..."
+                                required
+                            />
+                            <Button
+                                variant="default"
+                                type="submit"
+                                disabled={!username.trim()}
+                                className="rounded-lg px-8 py-3">
+                                Join
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-5 max-w-2xl h-screen py-8">
-            <div className="flex flex-col h-full bg-gray-900 rounded-lg shadow-md">
-                <div className="py-4 px-6 border-b">
-                    <h1 className="text-2xl font-bold">Chat</h1>
-                    <div className="flex justify-between items-center mt-2">
+        <div className="container mx-auto h-[70vh] max-w-2xl px-1 md:px-5">
+            <Card className="flex h-full w-full flex-col rounded-lg shadow-md">
+                <div className="border-b px-6 py-4">
+                    <CardTitle className="text-2xl font-bold">Chat</CardTitle>
+                    <div className="mt-2 flex justify-between">
                         <span className="text-sm">Chatting as: {username}</span>
                         <span
-                            className={`text-sm ${connected ? 'text-green-500' : 'text-red-500'}`}>
+                            className={`text-sm ${connected ? 'text-primary' : 'text-destructive'}`}>
                             {connected ? 'Connected' : 'Disconnected'}
                         </span>
                     </div>
                 </div>
 
-                <div className="flex-1 p-4 overflow-y-auto" ref={messagesContainerRef}>
+                <div className="flex-1 overflow-y-auto p-4" ref={messagesContainerRef}>
                     {isLoading ? (
-                        <div className="flex justify-center items-center h-full">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <div className="flex h-full items-center justify-center">
+                            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
                         </div>
                     ) : error ? (
-                        <div className="text-center text-red-500 py-4">
+                        <div className="text-destructive py-4 text-center">
                             {error}
                             <button
                                 onClick={() => window.location.reload()}
@@ -203,15 +217,15 @@ const ChatPage = () => {
                     ) : (
                         <div className="space-y-4">
                             {messages.map((message, index) => (
-                                <div
+                                <Card
                                     key={index}
-                                    className={`p-3 rounded-lg ${
-                                        message.creator == username
-                                            ? 'bg-blue-600 ml-auto'
-                                            : 'bg-gray-600'
-                                    } max-w-[80%] break-words`}>
-                                    <div className="flex justify-between items-start gap-2">
-                                        <span className="font-semibold text-sm">
+                                    className={`p-3 ${
+                                        message.creator === username
+                                            ? 'bg-primary text-primary-foreground ml-auto'
+                                            : 'bg-secondary text-secondary-foreground'
+                                    } max-w-[95%] break-words md:max-w-[80%]`}>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <span className="max-w-[60%] break-all text-sm font-semibold">
                                             {message.creator == username ? 'You' : message.creator}
                                         </span>
                                         {message.createdAt && (
@@ -221,15 +235,15 @@ const ChatPage = () => {
                                         )}
                                     </div>
                                     <p className="mt-1">{message.content}</p>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     )}
                 </div>
 
-                <div className="p-4 border-t">
+                <div className="border-t p-4">
                     <div className="flex gap-2">
-                        <input
+                        <Input
                             type="text"
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
@@ -240,18 +254,19 @@ const ChatPage = () => {
                                 }
                             }}
                             placeholder="Type a message..."
-                            className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="focus:ring-ring flex-1 rounded-lg border p-3 focus:outline-none focus:ring-2"
                             disabled={!connected}
                         />
-                        <button
+                        <Button
+                            variant="default"
                             onClick={sendMessage}
                             disabled={!connected || !inputMessage.trim()}
-                            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:text-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                            className="rounded-lg px-6 py-3">
                             Send
-                        </button>
+                        </Button>
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };
