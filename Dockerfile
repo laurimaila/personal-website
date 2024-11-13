@@ -18,6 +18,8 @@ ARG NEXT_PUBLIC_BACKEND_WS
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm run build
+RUN cp -r public .next/standalone/ && \
+    cp -r .next/static .next/standalone/.next/
 
 FROM node:22-slim AS runtime
 
