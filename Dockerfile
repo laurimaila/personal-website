@@ -1,3 +1,4 @@
+# Node slim seems to work best with Next build
 FROM --platform=$BUILDPLATFORM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -17,7 +18,7 @@ ARG NEXT_PUBLIC_BACKEND_REST
 ARG NEXT_PUBLIC_BACKEND_WS
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm run build
+RUN pnpm run build # Standalone build is enabled in package.json
 RUN cp -r public .next/standalone/ && \
     cp -r .next/static .next/standalone/.next/
 
@@ -31,7 +32,7 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Set the correct permission for prerender cache
+# Set correct permissions to fix prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
@@ -40,6 +41,4 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
