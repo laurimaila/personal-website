@@ -8,7 +8,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: frontend-src
-  path: ./deploy/manifests
+  path: ./deploy/backend
   prune: true
   postBuild:
     substituteFrom:

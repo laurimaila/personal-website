@@ -1,6 +1,6 @@
 const buildConfig = () => {
     return {
-        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
         blog: {
             name: 'Lauri Maila',
             copyright: 'Lauri Maila',

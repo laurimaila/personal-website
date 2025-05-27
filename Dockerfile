@@ -14,8 +14,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 ARG NEXT_PUBLIC_BASE_URL
 ARG NEXT_PUBLIC_DIRECTUS_URL
-ARG NEXT_PUBLIC_BACKEND_REST
-ARG NEXT_PUBLIC_BACKEND_WS
+ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm run build # Standalone build is enabled in package.json

@@ -22,7 +22,7 @@ const ChatPage = () => {
         const fetchChatHistory = async () => {
             try {
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_REST}/api/messages`,
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/messages`,
                 );
                 if (!response.ok) {
                     throw new Error('Failed to fetch chat history');
@@ -54,7 +54,7 @@ const ChatPage = () => {
 
     // WebSocket functionality
     useEffect(() => {
-        const websocket = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_WS ?? '');
+        const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/ws`);
 
         websocket.onopen = () => {
             //console.log('Connected to WebSocket');

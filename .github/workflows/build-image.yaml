@@ -44,8 +44,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_BASE_URL=${{vars.NEXT_PUBLIC_BASE_URL}}
             NEXT_PUBLIC_DIRECTUS_URL=${{vars.NEXT_PUBLIC_DIRECTUS_URL}}
-            NEXT_PUBLIC_BACKEND_REST=${{vars.NEXT_PUBLIC_BACKEND_REST}}
-            NEXT_PUBLIC_BACKEND_WS=${{vars.NEXT_PUBLIC_BACKEND_WS}}
+            NEXT_PUBLIC_BACKEND_URL=${{vars.NEXT_PUBLIC_BACKEND_URL}}
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}
