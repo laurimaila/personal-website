@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deploy
+  namespace: personal-website
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      imagePullSecrets:
+        - name: ${PULL_SECRET_NAME}
+      containers:
+        - name: backend
+          image: ${BACKEND_IMAGE_REPOSITORY}:${BACKEND_IMAGE_TAG}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: POSTGRES_HOST
+              value: ${POSTGRES_HOST}
+            - name: POSTGRES_PORT
+              value: ${POSTGRES_PORT}
+            - name: POSTGRES_DB
+              value: ${POSTGRES_DB}
+            - name: POSTGRES_USER
+              value: ${POSTGRES_USER}
+            - name: POSTGRES_PASSWORD
+              value: ${POSTGRES_PASSWORD}
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: personal-website
+  labels:
+    service: backend
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: backend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: personal-website
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://${FRONTEND_DOMAIN}"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ${BACKEND_DOMAIN}
+      secretName: backend-tls
+  rules:
+    - host: ${BACKEND_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-svc
+                port:
+                  number: 80
