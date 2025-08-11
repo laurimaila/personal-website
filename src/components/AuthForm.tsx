@@ -27,14 +27,27 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
         setError(null);
 
         try {
-            const success = isLogin
-                ? await login(username, password)
-                : await register(username, password);
-
-            if (success) {
-                onSuccess();
+            if (isLogin) {
+                const success = await login(username, password);
+                if (success) {
+                    onSuccess();
+                } else {
+                    setError('Invalid credentials');
+                }
             } else {
-                setError(isLogin ? 'Invalid credentials' : 'Registration failed');
+                // Registration followed by automatic login
+                const registerSuccess = await register(username, password);
+                if (registerSuccess) {
+                    // Attempt login after successful registration
+                    const loginSuccess = await login(username, password);
+                    if (loginSuccess) {
+                        onSuccess();
+                    } else {
+                        setError('There was an error during login. Please try again later.');
+                    }
+                } else {
+                    setError('Registration failed');
+                }
             }
         } catch (error) {
             setError('An error occurred. Please try again.');
