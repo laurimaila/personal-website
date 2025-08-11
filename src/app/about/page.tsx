@@ -2,7 +2,9 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 
 const markdown = `# About Me
 
-There will be some content here soon...`;
+I'm an Information and Communication Technology MSc (Tech) student at the University of Turku, majoring in Software Engineering with a minor in Data Analytics.
+
+Currently focusing on a mix of full-stack development, data automation and distributed systems. I also have some experience in embedded systems and scientific computing.`;
 
 export async function generateMetadata() {
     return {

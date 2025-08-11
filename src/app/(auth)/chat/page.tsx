@@ -3,68 +3,78 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import type { ChatMessage, WSPayload, WSError } from '@/lib/types/message.ts';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthForm } from '@/components/AuthForm';
+import { chatApi } from '@/lib/api/chatApi';
+import type { ChatMessage, WebSocketPayload, WebSocketError } from '@/lib/api/chatApi.ts';
+import type { User } from '@/lib/api/authApi';
 
 const ChatPage = () => {
+    const { user, isLoading: authLoading, logout } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [inputMessage, setInputMessage] = useState('');
-    const [username, setUsername] = useState('');
-    const [isUsernameSet, setIsUsernameSet] = useState(false);
     const [ws, setWs] = useState<WebSocket | null>(null);
     const [connected, setConnected] = useState(false);
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-    // Fetch chat history
     useEffect(() => {
+        if (!user) return;
+
         const fetchChatHistory = async () => {
             try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/messages`,
-                );
-                if (!response.ok) {
-                    throw new Error('Failed to fetch chat history');
-                }
-                const history = await response.json();
+                setIsLoading(true);
+                const history = await chatApi.getMessages();
                 setMessages(history);
+                setError(null);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load chat history');
+                const errorMessage =
+                    err instanceof Error ? err.message : 'Failed to load chat history';
+                setError(errorMessage);
                 console.error('Error fetching chat history:', err);
             } finally {
                 setIsLoading(false);
             }
         };
+
         fetchChatHistory();
-    }, []);
+    }, [user]);
 
-    const scrollToBottom = () => {
-        if (messagesContainerRef.current) {
-            const { scrollHeight, clientHeight } = messagesContainerRef.current;
-            messagesContainerRef.current.scrollTop = scrollHeight - clientHeight;
-        }
-    };
-
+    // Scroll to bottom on new messages
     useEffect(() => {
-        if (messages.length > 0 && isUsernameSet) {
+        const scrollToBottom = () => {
+            if (messagesContainerRef.current) {
+                const { scrollHeight, clientHeight } = messagesContainerRef.current;
+                messagesContainerRef.current.scrollTop = scrollHeight - clientHeight;
+            }
+        };
+
+        if (messages.length > 0) {
             setTimeout(scrollToBottom, 100);
         }
-    }, [messages, isUsernameSet, scrollToBottom]);
+    }, [messages]);
 
     // WebSocket functionality
     useEffect(() => {
-        const websocket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/ws`);
+        if (!user) return;
+
+        const websocket = chatApi.createWebSocket();
+
+        if (!websocket) {
+            setError('Failed to create WebSocket connection');
+            return;
+        }
 
         websocket.onopen = () => {
-            //console.log('Connected to WebSocket');
             setConnected(true);
             setError(null);
         };
 
         websocket.onmessage = (event) => {
             try {
-                const data: WSPayload<ChatMessage | WSError> = JSON.parse(event.data);
+                const data: WebSocketPayload<ChatMessage | WebSocketError> = JSON.parse(event.data);
                 //console.log('Received from WebSocket:', data);
 
                 switch (data.type) {
@@ -72,7 +82,7 @@ const ChatPage = () => {
                         setMessages((prev) => [...prev, data.payload as ChatMessage]);
                         break;
                     case 'error':
-                        const errorPayload = data.payload as WSError;
+                        const errorPayload = data.payload as WebSocketError;
                         setError(errorPayload.message);
                         //console.error('Message error:', errorPayload.message);
                         break;
@@ -100,36 +110,22 @@ const ChatPage = () => {
         return () => {
             websocket.close();
         };
-    }, []);
+    }, [user]);
 
     const sendMessage = useCallback(() => {
-        if (ws && inputMessage.trim() && connected && isUsernameSet) {
-            const message: Omit<ChatMessage, 'id' | 'createdAt'> = {
+        if (ws && inputMessage.trim() && connected && user) {
+            const message: Omit<ChatMessage, 'id' | 'createdAt' | 'creator'> = {
                 content: inputMessage,
-                creator: username,
             };
             ws.send(JSON.stringify(message));
             //console.log('Sent to WebSocket:', message);
             setInputMessage('');
         }
-    }, [ws, inputMessage, connected, isUsernameSet, username]);
-
-    const handleUsernameSubmit = (e?: React.FormEvent) => {
-        if (e) {
-            e.preventDefault();
-        }
-        if (username.trim()) {
-            setIsUsernameSet(true);
-        }
-    };
+    }, [ws, inputMessage, connected, user]);
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            if (!isUsernameSet) {
-                handleUsernameSubmit();
-            } else {
-                sendMessage();
-            }
+            sendMessage();
         }
     };
 
@@ -146,53 +142,38 @@ const ChatPage = () => {
         })}`;
     };
 
-    if (!isUsernameSet) {
+    const isOwnMessage = (message: ChatMessage, currentUser: User) => {
+        if (currentUser.username == 'Visitor') {
+            return false;
+        }
+        return message.creator === currentUser.username;
+    };
+
+    // Show loading spinner while checking auth
+    if (authLoading) {
         return (
-            <div className="flex-column container mx-auto flex max-w-2xl items-start justify-center px-1 pt-12 md:px-5">
-                <Card className="w-full max-w-md rounded-lg p-5 shadow-md">
-                    <CardHeader>
-                        <CardTitle className="text-center text-2xl">Join chat</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex w-full flex-col items-center gap-5 px-4 sm:flex-row">
-                        <form
-                            onSubmit={handleUsernameSubmit}
-                            className="flex w-full flex-col items-center gap-5 px-4 sm:flex-row">
-                            <Input
-                                type="text"
-                                minLength={2}
-                                maxLength={30}
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.repeat) {
-                                        e.preventDefault();
-                                        handleKeyPress(e);
-                                    }
-                                }}
-                                placeholder="Enter name here..."
-                                required
-                            />
-                            <Button
-                                variant="default"
-                                type="submit"
-                                disabled={!username.trim()}
-                                className="rounded-lg px-8 py-3">
-                                Join
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+            <div className="flex h-screen items-center justify-center">
+                <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
             </div>
         );
+    }
+
+    if (!user) {
+        return <AuthForm onSuccess={() => {}} />;
     }
 
     return (
         <div className="container mx-auto h-[70vh] max-w-2xl px-1 md:px-5">
             <Card className="flex h-full w-full flex-col rounded-lg shadow-md">
                 <div className="border-b px-6 py-4">
-                    <CardTitle className="text-2xl font-bold">Chat</CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-2xl font-bold">Chat</CardTitle>
+                        <Button variant="outline" size="sm" onClick={logout}>
+                            Logout
+                        </Button>
+                    </div>
                     <div className="mt-2 flex justify-between">
-                        <span className="text-sm">Chatting as: {username}</span>
+                        <span className="text-sm">Chatting as: {user.username}</span>
                         <span
                             className={`text-sm ${connected ? 'text-primary' : 'text-destructive'}`}>
                             {connected ? 'Connected' : 'Disconnected'}
@@ -220,13 +201,13 @@ const ChatPage = () => {
                                 <Card
                                     key={index}
                                     className={`p-3 ${
-                                        message.creator === username
+                                        isOwnMessage(message, user)
                                             ? 'bg-primary text-primary-foreground ml-auto'
                                             : 'bg-secondary text-secondary-foreground'
                                     } max-w-[95%] break-words md:max-w-[80%]`}>
                                     <div className="flex items-start justify-between gap-2">
                                         <span className="max-w-[60%] break-all text-sm font-semibold">
-                                            {message.creator == username ? 'You' : message.creator}
+                                            {isOwnMessage(message, user) ? 'You' : message.creator}
                                         </span>
                                         {message.createdAt && (
                                             <span className={`text-xs`}>

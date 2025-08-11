@@ -37,9 +37,15 @@ const menuItems: MenuItem[] = [
 ];
 
 export const Navigation: FC = () => {
-    const [sheetOpen, setSheetOpen] = useState(false);
-
+    const [sheetOpen, setSheetOpen] = useState<boolean>(false);
     const pathname = usePathname();
+
+    const isActive = (item: MenuItem) => {
+        if (item.href === '/') {
+            return pathname === '/' || pathname.startsWith('/blog');
+        }
+        return pathname.startsWith(item.href);
+    };
 
     return (
         <nav>
@@ -53,8 +59,8 @@ export const Navigation: FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={cn(
-                                    'hover:text-gray-900',
-                                    pathname === item.href && 'font-semibold',
+                                    'hover:text-primary-foreground/60 rounded-md py-2 transition-colors',
+                                    isActive(item) ? 'bg-accent text-accent-foreground' : '',
                                 )}>
                                 {item.icon ? item.icon : item.name}
                             </a>
@@ -63,8 +69,8 @@ export const Navigation: FC = () => {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    'hover:text-gray-900',
-                                    pathname === item.href && 'font-semibold',
+                                    'hover:text-primary-foreground/60 rounded-md px-3 py-2 transition-colors',
+                                    isActive(item) ? 'bg-accent text-accent-foreground' : '',
                                 )}>
                                 {item.icon ? item.icon : item.name}
                             </Link>
@@ -74,11 +80,11 @@ export const Navigation: FC = () => {
             </div>
             <div className="md:hidden">
                 <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                    <div className="relative z-[100]">
-                        <SheetTrigger>
-                            <Menu size="24" aria-label="Toggle navigation menu" />
-                        </SheetTrigger>
-                    </div>
+                    <SheetTrigger asChild>
+                        <button className="relative" aria-label="Toggle navigation menu">
+                            <Menu size="24" />
+                        </button>
+                    </SheetTrigger>
                     <SheetContent className="z-[99] w-[60vw]">
                         <SheetHeader>
                             <SheetTitle className="sr-only">Mobile navigation menu</SheetTitle>
@@ -91,8 +97,10 @@ export const Navigation: FC = () => {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className={cn(
-                                                'block py-2',
-                                                pathname === item.href && 'font-semibold',
+                                                'mx-7 block rounded-sm py-2',
+                                                isActive(item)
+                                                    ? 'bg-accent text-accent-foreground'
+                                                    : '',
                                             )}>
                                             {item.name}
                                         </a>
@@ -102,8 +110,10 @@ export const Navigation: FC = () => {
                                             href={item.href}
                                             onClick={() => setSheetOpen(false)}
                                             className={cn(
-                                                'block py-2',
-                                                pathname === item.href && 'font-semibold',
+                                                'mx-7 block rounded-sm py-2',
+                                                isActive(item)
+                                                    ? 'bg-accent text-accent-foreground'
+                                                    : '',
                                             )}>
                                             {item.name}
                                         </Link>
