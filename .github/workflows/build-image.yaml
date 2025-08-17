@@ -27,6 +27,19 @@ jobs:
           calculatedSha=$(git rev-parse --short ${{ github.sha }})
           echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
 
+      - name: Extract version from commit message
+        id: extract_version
+        run: |
+          commit_msg="${{ github.event.workflow_run.head_commit.message }}"
+          if [[ "$commit_msg" =~ bump:([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            version="${BASH_REMATCH[1]}"
+            echo "Found version: $version"
+            echo "IMAGE_VERSION=$version" >> $GITHUB_ENV
+          else
+            echo "No version found in commit message, using 'latest'"
+            echo "IMAGE_VERSION=latest" >> $GITHUB_ENV
+          fi
+
       - name: Log in to ghcr.io
         uses: docker/login-action@v3
         with:
@@ -36,6 +49,9 @@ jobs:
 
       - name: Build and push image
         uses: docker/build-push-action@v6
+        env:
+          COMMIT_SHORT_SHA: ${{ env.COMMIT_SHORT_SHA }}
+          IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
         with:
           context: .
           push: true
@@ -47,4 +63,4 @@ jobs:
             NEXT_PUBLIC_BACKEND_URL=${{vars.NEXT_PUBLIC_BACKEND_URL}}
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}
+            ghcr.io/${{ github.repository }}:prod-${{ env.IMAGE_VERSION }}
