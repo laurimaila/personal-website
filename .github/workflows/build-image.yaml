@@ -52,6 +52,7 @@ jobs:
         env:
           COMMIT_SHORT_SHA: ${{ env.COMMIT_SHORT_SHA }}
           IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
         with:
           context: .
           push: true
@@ -65,3 +66,12 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}
+            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}
+
+      - name: Clean up old package versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}
+          package-type: 'container'
+          min-versions-to-keep: 10
+          delete-only-untagged-versions: false
