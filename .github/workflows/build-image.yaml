@@ -36,7 +36,7 @@ jobs:
             echo "Found version: $version"
             echo "IMAGE_VERSION=$version" >> $GITHUB_ENV
           else
-            echo "No version found in commit message, using 'latest'"
+            echo "No version in commit message, using 'latest'"
             echo "IMAGE_VERSION=latest" >> $GITHUB_ENV
           fi
 
@@ -63,4 +63,4 @@ jobs:
             NEXT_PUBLIC_BACKEND_URL=${{vars.NEXT_PUBLIC_BACKEND_URL}}
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:prod-${{ env.IMAGE_VERSION }}
+            ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}
