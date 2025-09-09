@@ -1,10 +1,11 @@
 import { BlogPostContent } from '@/components/BlogPostContent';
+import { BlogPostNavigation } from '@/components/BlogPostNavigation';
 import { notFound } from 'next/navigation';
 import { getPosts, getPostBySlug } from '@/lib/directus';
 import type { BlogPosting, WithContext } from 'schema-dts';
 
 export const dynamicParams = true;
-export const revalidate = 60;
+export const revalidate = 120; // Revalidate every 2 minutes
 
 // Generate static pages for specified slugs
 export async function generateStaticParams() {
@@ -19,7 +20,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     const res = await getPostBySlug(params.slug);
     if (!res) {
         return {
-            title: 'Blog post not found',
+            title: 'Blog post not found :(',
         };
     }
 
@@ -35,6 +36,22 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     };
 }
 
+function getAdjacentPosts(posts: any[], currentSlug: string) {
+    const currentIndex = posts.findIndex((post) => post.slug === currentSlug);
+
+    if (currentIndex === -1) {
+        return { prevPost: null, nextPost: null };
+    }
+
+    // Assuming posts are ordered by date (newest first)
+    // Previous post = newer post (index - 1)
+    // Next post = older post (index + 1)
+    const prevPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
+    const nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
+
+    return { prevPost, nextPost };
+}
+
 const Page = async (props: { params: Promise<{ slug: string }> }) => {
     const params = await props.params;
     const post = await getPostBySlug(params.slug);
@@ -42,6 +59,9 @@ const Page = async (props: { params: Promise<{ slug: string }> }) => {
     if (!post) {
         return notFound();
     }
+
+    const allPosts = await getPosts();
+    const { prevPost, nextPost } = getAdjacentPosts(allPosts, params.slug);
 
     const { title, date_created, date_updated, author } = post;
 
@@ -54,7 +74,6 @@ const Page = async (props: { params: Promise<{ slug: string }> }) => {
         author: {
             '@type': 'Person',
             name: author ?? undefined,
-            //    image: author.image ?? undefined,
         },
     };
 
@@ -66,7 +85,9 @@ const Page = async (props: { params: Promise<{ slug: string }> }) => {
             />
             <div className="container mx-auto px-5">
                 <BlogPostContent post={post} />
-                {/*<RelatedPosts posts={posts} />*/}
+
+                {/* Link to next/previous */}
+                <BlogPostNavigation nextPost={nextPost} prevPost={prevPost} />
             </div>
         </>
     );

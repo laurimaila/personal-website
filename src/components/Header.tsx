@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
     { name: 'Chat', href: '/chat' },
     {
         name: 'Github',
-        href: 'https://github.com/laurimaila',
+        href: 'https://github.com/laurimaila/personal-website',
         openInNewTab: true,
         icon: <SiGithub size={24} />,
     },

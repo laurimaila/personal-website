@@ -19,8 +19,13 @@ const directus = createDirectus<Schema>(process.env.NEXT_PUBLIC_DIRECTUS_URL as 
     rest(),
 );
 
+// Fetch all blog posts, newest first
 export const getPosts = async (): Promise<BlogPost[]> => {
-    const res = await directus.request(readItems('blog_posts'));
+    const res = await directus.request(
+        readItems('blog_posts', {
+            sort: ['-date_created'],
+        }),
+    );
     return res;
 };
 
