@@ -1,6 +1,6 @@
-import { ThemeProvider } from '@/components/theme-provider';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+import { ThemeProvider } from '@/components/theme-provider';
 import { config } from '@/config';
 import { cn } from '@/lib/utils';
 import type { Metadata } from 'next';
@@ -29,7 +29,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html>
+        <html suppressHydrationWarning>
             <head>
                 <link rel="manifest" href="/site.webmanifest" />
             </head>
@@ -38,11 +38,7 @@ export default function RootLayout({
                     'bg-background m-auto min-h-screen max-w-6xl font-sans antialiased',
                     fontSans.variable,
                 )}>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                     <Header />
                     <main className="min-h-[70vh] md:min-h-[65vh]">{children}</main>
                     <Footer />

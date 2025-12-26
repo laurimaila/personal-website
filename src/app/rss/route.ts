@@ -1,10 +1,10 @@
-export const revalidate = 60 * 60; // 1 hour
+export const revalidate = 3600; // 1 hour
 
+import { config } from '@/config';
+import { getPosts } from '@/lib/directus';
 import { NextResponse } from 'next/server';
 import RSS from 'rss';
 import urlJoin from 'url-join';
-import { getPosts } from '@/lib/directus';
-import { config } from '@/config';
 
 const baseUrl = config.baseUrl;
 

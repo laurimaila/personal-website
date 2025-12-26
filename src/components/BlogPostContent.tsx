@@ -1,6 +1,5 @@
-'use server';
-import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { BlogPost } from '@/lib/directus';
+import { MDXRemote } from 'next-mdx-remote/rsc';
 
 export const PostContent = ({ content }: { content: string }) => {
     return (

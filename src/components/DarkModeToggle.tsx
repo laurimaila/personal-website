@@ -1,29 +1,18 @@
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 export const DarkModeToggle = () => {
-    const { setTheme, resolvedTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+    const { setTheme, theme } = useTheme();
 
-    useEffect(() => {
-        // When the component mounts on the client, update the state to indicate it is mounted
-        setMounted(true);
-    }, []);
-
-    const toggleDarkMode = () => {
-        setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-    };
-
-    // Render nothing on the server
-    // TODO: toggle button appears later than RSS button, small problem
-    if (!mounted) return null;
-
-    // Once the component has mounted, we can safely render
     return (
-        <Button variant="ghost" onClick={toggleDarkMode} className="p-2">
-            {resolvedTheme === 'dark' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+        <Button
+            variant="ghost"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2"
+            aria-label="Toggle theme">
+            <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
     );
 };
