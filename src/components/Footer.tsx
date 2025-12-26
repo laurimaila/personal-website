@@ -7,15 +7,20 @@ import { Button } from './ui/button';
 
 const Footer: FC = () => {
     return (
-        <section className="mt-8 md:mt-16 mb-12 mx-5">
+        <section className="mx-5 mb-12 mt-8 md:mt-16">
             <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                     © Lauri Maila {new Date().getFullYear()}
+                    {process.env.NEXT_PUBLIC_APP_VERSION && (
+                        <span className="ml-2 text-xs opacity-50">
+                            {process.env.NEXT_PUBLIC_APP_VERSION}
+                        </span>
+                    )}
                 </div>
                 <div>
                     <Link href="/rss">
                         <Button variant="ghost" className="p-2">
-                            <Rss className="w-6 h-6" />
+                            <Rss className="h-6 w-6" />
                         </Button>
                     </Link>
                     <DarkModeToggle />
