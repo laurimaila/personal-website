@@ -2,16 +2,19 @@
     "name": "personal-website",
     "version": "1.0.0",
     "private": true,
+    "engines": {
+        "node": ">=24.12.0"
+    },
     "scripts": {
         "dev": "next dev -p 3001",
         "build": "next build",
-        "start": "node .next/standalone/server.js",
+        "start": "next start",
         "test": "vitest --config ./config/vitest.config.mts",
         "lint": "eslint",
         "lint:fix": "eslint --fix"
     },
     "dependencies": {
-        "@directus/sdk": "^17.0.2",
+        "@directus/sdk": "^20.3.0",
         "@icons-pack/react-simple-icons": "^10.2.0",
         "@radix-ui/react-aspect-ratio": "^1.1.8",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -35,7 +38,7 @@
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.19",
         "@testing-library/react": "^16.3.1",
-        "@types/node": "^20.19.27",
+        "@types/node": "^24.10.4",
         "@types/react": "19.2.7",
         "@types/react-dom": "19.2.3",
         "@types/rss": "^0.0.32",
