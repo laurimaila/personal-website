@@ -1,4 +1,3 @@
-'use client';
 import { Rss } from 'lucide-react';
 import Link from 'next/link';
 import { FC } from 'react';
@@ -18,11 +17,11 @@ const Footer: FC = () => {
                     )}
                 </div>
                 <div>
-                    <Link href="/rss">
-                        <Button variant="ghost" className="p-2">
-                            <Rss className="h-6 w-6" />
-                        </Button>
-                    </Link>
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/rss" aria-label="RSS feed">
+                            <Rss className="h-6 w-6" aria-hidden="true" />
+                        </Link>
+                    </Button>
                     <DarkModeToggle />
                 </div>
             </div>

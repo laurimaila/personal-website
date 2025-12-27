@@ -10,7 +10,7 @@ const buildConfig = () => {
                     default: 'Lauri Maila',
                     template: `%s - Lauri Maila`,
                 },
-                description: 'A blog and personal website',
+                description: 'Personal website and blog',
             },
         },
     };

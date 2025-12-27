@@ -1,4 +1,3 @@
-'use client';
 import { cn } from '@/lib/utils';
 import { formatDate } from 'date-fns';
 import Image from 'next/image';

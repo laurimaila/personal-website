@@ -29,7 +29,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="manifest" href="/site.webmanifest" />
             </head>

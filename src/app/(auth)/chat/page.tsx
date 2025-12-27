@@ -1,13 +1,13 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { AuthForm } from '@/components/AuthForm';
-import { chatApi } from '@/lib/api/chatApi';
-import type { ChatMessage, WebSocketPayload, WebSocketError } from '@/lib/api/chatApi.ts';
+import { Button } from '@/components/ui/button';
+import { Card, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/lib/api/authApi';
+import { chatApi } from '@/lib/api/chatApi';
+import type { ChatMessage, WebSocketError, WebSocketPayload } from '@/lib/api/chatApi.ts';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const ChatPage = () => {
     const { user, isLoading: authLoading, logout } = useAuth();
