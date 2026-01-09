@@ -15,6 +15,13 @@ jobs:
     runs-on: [self-hosted, linux, ARM64]
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [prod-compose, prod-k8s]
+
+    environment: ${{ matrix.environment }}
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -84,22 +91,24 @@ jobs:
           context: .
           push: true
           platforms: linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.environment }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.environment }}
           build-args: |
-            NEXT_PUBLIC_BASE_URL=${{vars.NEXT_PUBLIC_BASE_URL}}
-            NEXT_PUBLIC_DIRECTUS_URL=${{vars.NEXT_PUBLIC_DIRECTUS_URL}}
-            NEXT_PUBLIC_BACKEND_URL=${{vars.NEXT_PUBLIC_BACKEND_URL}}
+            NEXT_PUBLIC_BACKEND_URL=${{ vars.NEXT_PUBLIC_BACKEND_URL }}
+            NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_DIRECTUS_URL=${{ vars.NEXT_PUBLIC_DIRECTUS_URL }}
             NEXT_PUBLIC_APP_VERSION=${{ env.APP_VERSION }}
+
           tags: |
-            ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG }}
-            ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}
-            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}
+            ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG }}${{ vars.TAG_SUFFIX }}
+            ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}${{ vars.TAG_SUFFIX }}
+            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}${{ vars.TAG_SUFFIX }}
 
       - name: Clean up old package versions
+        if: matrix.environment == 'prod-compose'
         uses: actions/delete-package-versions@v5
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: 'container'
-          min-versions-to-keep: 15
+          min-versions-to-keep: 20
           delete-only-untagged-versions: false
