@@ -10,7 +10,7 @@ import {
 
 export const BlogPostsPagination = ({
     pagination,
-    basePath = '/?page=',
+    basePath = '/page/',
     numSiblingPages = 2,
 }: {
     basePath?: string;
@@ -23,14 +23,19 @@ export const BlogPostsPagination = ({
         prevPage: number | null;
     };
 }) => {
-    const isSinglePage = pagination.totalPages < 2;
+    const getPageUrl = (pageNumber: number) => {
+        if (pageNumber == 1) {
+            return '/';
+        }
+        return `${basePath}${pageNumber}`;
+    };
 
     return (
         <Pagination>
             <PaginationContent>
                 {pagination.prevPage && (
                     <PaginationItem>
-                        <PaginationPrevious href={`${basePath}${pagination.prevPage}`} />
+                        <PaginationPrevious href={getPageUrl(pagination.prevPage)} />
                     </PaginationItem>
                 )}
 
@@ -38,7 +43,7 @@ export const BlogPostsPagination = ({
                 {pagination.page > numSiblingPages + 2 && (
                     <>
                         <PaginationItem>
-                            <PaginationLink href={`${basePath}1`}>1</PaginationLink>
+                            <PaginationLink href={getPageUrl(1)}>1</PaginationLink>
                         </PaginationItem>
                         <PaginationItem>
                             <PaginationEllipsis />
@@ -54,7 +59,7 @@ export const BlogPostsPagination = ({
                     .map((pageNumber) => (
                         <PaginationItem key={pageNumber}>
                             <PaginationLink
-                                href={`${basePath}${pageNumber}`}
+                                href={getPageUrl(pageNumber)}
                                 isActive={pageNumber === pagination.page}>
                                 {pageNumber}
                             </PaginationLink>
@@ -68,7 +73,7 @@ export const BlogPostsPagination = ({
                             <PaginationEllipsis />
                         </PaginationItem>
                         <PaginationItem>
-                            <PaginationLink href={`${basePath}${pagination.totalPages}`}>
+                            <PaginationLink href={getPageUrl(pagination.totalPages)}>
                                 {pagination.totalPages}
                             </PaginationLink>
                         </PaginationItem>
