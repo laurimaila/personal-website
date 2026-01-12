@@ -49,7 +49,7 @@ jobs:
             echo "LATEST_TAG=$TAG_NAME" >> $GITHUB_ENV
             echo "IS_MAIN=true" >> $GITHUB_ENV
           else
-            TAG_NAME="dev-latest"
+            TAG_NAME="latest-dev"
             echo "LATEST_TAG=$TAG_NAME" >> $GITHUB_ENV
             echo "IS_MAIN=false" >> $GITHUB_ENV
           fi

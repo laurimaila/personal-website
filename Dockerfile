@@ -1,5 +1,5 @@
 # Node slim seems to work best with Next build
-FROM --platform=$BUILDPLATFORM node:22-slim AS base
+FROM --platform=$BUILDPLATFORM node:24-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -22,7 +22,7 @@ RUN pnpm run build # Standalone build is enabled in package.json
 RUN cp -r public .next/standalone/ && \
     cp -r .next/static .next/standalone/.next/
 
-FROM node:22-slim AS runtime
+FROM node:24-slim AS runtime
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
