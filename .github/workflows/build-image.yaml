@@ -11,14 +11,30 @@ permissions:
   contents: read
 
 jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      environments: ${{ steps.get-environments.outputs.environments }}
+    steps:
+      - name: Determine environments
+        id: get-environments
+        run: |
+          if [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
+            echo "environments=[\"prod\", \"prod-compose\"]" >> $GITHUB_OUTPUT
+          else
+            echo "environments=[\"dev\"]" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: setup-matrix
     runs-on: [self-hosted, linux, ARM64]
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     strategy:
       fail-fast: false
       matrix:
-        environment: [prod-compose, prod-k8s]
+        environment: ${{ fromJson(needs.setup-matrix.outputs.environments) }}
 
     environment: ${{ matrix.environment }}
 
@@ -45,12 +61,8 @@ jobs:
           branch_name="${{ github.event.workflow_run.head_branch }}"
 
           if [[ "$branch_name" == "main" ]]; then
-            TAG_NAME="latest"
-            echo "LATEST_TAG=$TAG_NAME" >> $GITHUB_ENV
             echo "IS_MAIN=true" >> $GITHUB_ENV
           else
-            TAG_NAME="dev-latest"
-            echo "LATEST_TAG=$TAG_NAME" >> $GITHUB_ENV
             echo "IS_MAIN=false" >> $GITHUB_ENV
           fi
 
@@ -61,16 +73,11 @@ jobs:
             version="${BASH_REMATCH[1]}"
             echo "Found version bump: $version"
             echo "APP_VERSION=v$version" >> $GITHUB_ENV
-
-            if [[ "$branch_name" == "main" ]]; then
-              echo "IMAGE_VERSION=$version" >> $GITHUB_ENV
-            else
-              echo "IMAGE_VERSION=${version}-dev" >> $GITHUB_ENV
-            fi
+            echo "IMAGE_VERSION=$version" >> $GITHUB_ENV
           else
             echo "No version bump found."
             echo "APP_VERSION=$COMMIT_SHORT_SHA" >> $GITHUB_ENV
-            echo "IMAGE_VERSION=$TAG_NAME" >> $GITHUB_ENV
+            echo "IMAGE_VERSION=$COMMIT_SHORT_SHA" >> $GITHUB_ENV
           fi
 
       - name: Log in to ghcr.io
@@ -85,7 +92,6 @@ jobs:
         env:
           COMMIT_SHORT_SHA: ${{ env.COMMIT_SHORT_SHA }}
           IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
-          LATEST_TAG: ${{ env.LATEST_TAG }}
           BUILDX_NO_DEFAULT_ATTESTATIONS: 1
         with:
           context: .
@@ -100,7 +106,7 @@ jobs:
             NEXT_PUBLIC_APP_VERSION=${{ env.APP_VERSION }}
 
           tags: |
-            ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG }}${{ vars.TAG_SUFFIX }}
+            ghcr.io/${{ github.repository }}:latest${{ vars.TAG_SUFFIX }}
             ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}${{ vars.TAG_SUFFIX }}
             ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}${{ vars.TAG_SUFFIX }}
 
@@ -110,5 +116,5 @@ jobs:
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: 'container'
-          min-versions-to-keep: 20
+          min-versions-to-keep: 19
           delete-only-untagged-versions: false

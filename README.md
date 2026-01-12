@@ -2,7 +2,7 @@
 # Personal website
 
 A Next.js app for my blog and personal website. Uses Incremental Static Regeneration to reduce page load times. 
-Styled with [shadcn](https://ui.shadcn.com/) and Tailwind CSS, deployed to a k8s cluster running on two VPSs.
+Styled with [shadcn](https://ui.shadcn.com/) and Tailwind CSS, deployed to a k8s cluster running on three Oracle Cloud VPS.
 
 
 ## Local development
