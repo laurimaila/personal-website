@@ -1,3 +1,4 @@
+@config "../../config/tailwind.config.ts";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
         --popover: 0 0% 100%;
         --popover-foreground: 240 10% 3.9%;
 
-        --primary: 240 5.9% 10%;
+        --primary: 240 5.9% 40%;
         --primary-foreground: 236 90% 97%;
 
         --secondary: 240 4.8% 95.9%;

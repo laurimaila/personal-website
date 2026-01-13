@@ -26,8 +26,8 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
     { name: 'Blog', href: '/' },
     { name: 'About', href: '/about' },
-    { name: 'Chat', href: '/chat' },
     { name: 'Physics', href: '/physics' },
+    { name: 'Chat', href: '/chat' },
     {
         name: 'Github',
         href: 'https://github.com/laurimaila/personal-website',
@@ -54,22 +54,20 @@ export const TopNavigation: FC = () => {
                     <div key={item.href} className="ml-4 md:ml-8">
                         {item.openInNewTab ? (
                             <a
-                                key={item.href}
                                 href={item.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={cn(
-                                    'hover:text-primary-foreground/60 rounded-md py-2 transition-colors',
+                                    'hover:text-primary-foreground/60 rounded-md py-2',
                                     isActive(item) ? 'bg-accent text-accent-foreground' : '',
                                 )}>
                                 {item.icon ? item.icon : item.name}
                             </a>
                         ) : (
                             <Link
-                                key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    'hover:text-primary-foreground/60 rounded-md px-3 py-2 transition-colors',
+                                    'hover:text-primary-foreground/60 rounded-md px-3 py-2',
                                     isActive(item) ? 'bg-accent text-accent-foreground' : '',
                                 )}>
                                 {item.icon ? item.icon : item.name}
@@ -88,39 +86,42 @@ export const TopNavigation: FC = () => {
                     <SheetContent className="z-[99] w-[60vw]">
                         <SheetHeader>
                             <SheetTitle className="sr-only">Mobile navigation menu</SheetTitle>
-                            <SheetDescription>
-                                {menuItems.map((item) =>
-                                    item.openInNewTab ? (
-                                        <a
-                                            key={item.href}
-                                            href={item.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={cn(
-                                                'mx-7 block rounded-sm py-2',
-                                                isActive(item)
-                                                    ? 'bg-accent text-accent-foreground'
-                                                    : '',
-                                            )}>
-                                            {item.name}
-                                        </a>
-                                    ) : (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            onClick={() => setSheetOpen(false)}
-                                            className={cn(
-                                                'mx-7 block rounded-sm py-2',
-                                                isActive(item)
-                                                    ? 'bg-accent text-accent-foreground'
-                                                    : '',
-                                            )}>
-                                            {item.name}
-                                        </Link>
-                                    ),
-                                )}
+                            <SheetDescription className="sr-only">
+                                Navigation links
                             </SheetDescription>
                         </SheetHeader>
+                        <div className="mt-4 flex flex-col gap-2">
+                            {menuItems.map((item) =>
+                                item.openInNewTab ? (
+                                    <a
+                                        key={item.href}
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn(
+                                            'mx-7 block rounded-sm py-2 text-center',
+                                            isActive(item)
+                                                ? 'bg-accent text-accent-foreground'
+                                                : '',
+                                        )}>
+                                        {item.name}
+                                    </a>
+                                ) : (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => setSheetOpen(false)}
+                                        className={cn(
+                                            'mx-7 block rounded-sm py-2 text-center',
+                                            isActive(item)
+                                                ? 'bg-accent text-accent-foreground'
+                                                : '',
+                                        )}>
+                                        {item.name}
+                                    </Link>
+                                ),
+                            )}
+                        </div>
                     </SheetContent>
                 </Sheet>
             </div>

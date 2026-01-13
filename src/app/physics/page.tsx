@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
+// Only rerender the simulation when parameters change
+const MemoLorenzSystem = React.memo(LorenzSystem);
+
 export default function PhysicsPage() {
     const [params, setParams] = useState({
         sigma: 10,
@@ -29,9 +32,9 @@ export default function PhysicsPage() {
     };
 
     return (
-        <div className="flex h-screen w-full flex-col">
+        <div className="flex h-[100svh] w-full flex-col">
             <div className="relative flex-1 overflow-hidden">
-                <LorenzSystem {...params} />
+                <MemoLorenzSystem {...params} />
             </div>
 
             <div className="z-10 w-full p-3">
@@ -64,9 +67,7 @@ export default function PhysicsPage() {
                                 className="w-[6rem] border-zinc-700"
                             />
                         </div>
-                        <Button
-                            onClick={handleUpdate}
-                            className="mx-auto w-[6rem] text-black hover:bg-white/90">
+                        <Button onClick={handleUpdate} className="mx-auto w-[6rem]">
                             Update
                         </Button>
                     </CardContent>
