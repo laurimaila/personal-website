@@ -10,19 +10,6 @@ interface MenuItem {
     icon?: JSX.Element;
 }
 
-// Show icon over name
-const menuItems: MenuItem[] = [
-    { name: 'Blog', href: '/' },
-    { name: 'About', href: '/about' },
-    { name: 'Chat', href: '/chat' },
-    {
-        name: 'Github',
-        href: 'https://github.com/laurimaila/personal-website',
-        openInNewTab: true,
-        icon: <SiGithub size={24} />,
-    },
-];
-
 const Header: FC = () => {
     return (
         <section className="mx-5 mb-12 mt-5 flex items-center justify-between md:mx-0 md:mt-16">
