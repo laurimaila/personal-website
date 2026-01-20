@@ -1,9 +1,7 @@
-
 # Personal website
 
-A Next.js app for my blog and personal website. Uses Incremental Static Regeneration to reduce page load times. 
+A Next.js app for my blog and personal website. Uses Incremental Static Regeneration to reduce page load times.
 Styled with [shadcn](https://ui.shadcn.com/) and Tailwind CSS, deployed to a k8s cluster running on three Oracle Cloud VPS.
-
 
 ## Local development
 
@@ -25,8 +23,6 @@ Start the development server
   pnpm dev
 ```
 
-
 ## Deployment
 
 The standalone Node server can be built using `pnpm next build`. After passing tests in CI, the image is automatically pushed to ghcr.io and updated to the production cluster.
-    

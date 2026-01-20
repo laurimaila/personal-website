@@ -1,26 +1,32 @@
-name: Build and push image
-run-name: Build and push image - ${{ github.event.workflow_run.head_commit.message }}
+name: Build and push docker image
+run-name: Build and push docker image - ${{ github.event.head_commit.message }}
+
 on:
-  workflow_run:
-    workflows: ["Run tests"]
-    branches: [main,dev]
-    types: [completed]
+  push:
+    branches: [main, dev]
+    tags: ['v*.*.*']
 
 permissions:
   packages: write
   contents: read
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yaml
+  test:
+    uses: ./.github/workflows/test.yaml
+
   setup-matrix:
+    needs: [lint, test]
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/tags/')
     outputs:
       environments: ${{ steps.get-environments.outputs.environments }}
     steps:
       - name: Determine environments
         id: get-environments
         run: |
-          if [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
+          if [[ "${{ startsWith(github.ref, 'refs/tags/') }}" == "true" ]]; then
             echo "environments=[\"prod\", \"prod-compose\"]" >> $GITHUB_OUTPUT
           else
             echo "environments=[\"dev\"]" >> $GITHUB_OUTPUT
@@ -29,8 +35,6 @@ jobs:
   build:
     needs: setup-matrix
     runs-on: [self-hosted, linux, ARM64]
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -39,46 +43,30 @@ jobs:
     environment: ${{ matrix.environment }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Extract metadata for image
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=${{ matrix.environment == 'prod' && 'auto' || 'false' }}
+          tags: |
+            type=semver,pattern={{version}},enable=${{ matrix.environment == 'prod' }}
+            type=sha,prefix=,enable=${{ matrix.environment == 'prod' }}
+
+            type=sha,prefix=,suffix=-dev,enable=${{ matrix.environment == 'dev' }}
+
+            type=semver,pattern={{version}}-compose,enable=${{ matrix.environment == 'prod-compose' }}
+            type=sha,prefix=,suffix=-compose,enable=${{ matrix.environment == 'prod-compose' }}
+
+            type=raw,value=${{ vars.TAG }},enable=${{ vars.TAG != '' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Set short git commit SHA
-        id: vars
-        run: |
-          FULL_SHA="${{ github.event.workflow_run.head_sha }}"
-          SHORT_SHA="${FULL_SHA:0:7}"
-          echo "COMMIT_SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
-
-      - name: Extract version from commit message
-        id: extract_version
-        env:
-          COMMIT_MSG: ${{ github.event.workflow_run.head_commit.message }}
-        run: |
-          branch_name="${{ github.event.workflow_run.head_branch }}"
-
-          if [[ "$branch_name" == "main" ]]; then
-            echo "IS_MAIN=true" >> $GITHUB_ENV
-          else
-            echo "IS_MAIN=false" >> $GITHUB_ENV
-          fi
-
-          # Case-insensitive matching
-          shopt -s nocasematch
-
-          if [[ "$COMMIT_MSG" =~ bump:v?([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            version="${BASH_REMATCH[1]}"
-            echo "Found version bump: $version"
-            echo "APP_VERSION=v$version" >> $GITHUB_ENV
-            echo "IMAGE_VERSION=$version" >> $GITHUB_ENV
-          else
-            echo "No version bump found."
-            echo "APP_VERSION=$COMMIT_SHORT_SHA" >> $GITHUB_ENV
-            echo "IMAGE_VERSION=$COMMIT_SHORT_SHA" >> $GITHUB_ENV
-          fi
 
       - name: Log in to ghcr.io
         uses: docker/login-action@v3
@@ -90,8 +78,6 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         env:
-          COMMIT_SHORT_SHA: ${{ env.COMMIT_SHORT_SHA }}
-          IMAGE_VERSION: ${{ env.IMAGE_VERSION }}
           BUILDX_NO_DEFAULT_ATTESTATIONS: 1
         with:
           context: .
@@ -103,18 +89,15 @@ jobs:
             NEXT_PUBLIC_BACKEND_URL=${{ vars.NEXT_PUBLIC_BACKEND_URL }}
             NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
             NEXT_PUBLIC_DIRECTUS_URL=${{ vars.NEXT_PUBLIC_DIRECTUS_URL }}
-            NEXT_PUBLIC_APP_VERSION=${{ env.APP_VERSION }}
-
-          tags: |
-            ghcr.io/${{ github.repository }}:latest${{ vars.TAG_SUFFIX }}
-            ghcr.io/${{ github.repository }}:${{ env.IMAGE_VERSION }}${{ vars.TAG_SUFFIX }}
-            ghcr.io/${{ github.repository }}:${{ env.COMMIT_SHORT_SHA }}${{ vars.TAG_SUFFIX }}
+            NEXT_PUBLIC_APP_VERSION=${{ steps.meta.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Clean up old package versions
-        if: matrix.environment == 'prod-compose'
         uses: actions/delete-package-versions@v5
+        if: matrix.environment == 'prod-compose'
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: 'container'
-          min-versions-to-keep: 19
+          min-versions-to-keep: 30
           delete-only-untagged-versions: false

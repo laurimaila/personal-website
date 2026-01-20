@@ -1,11 +1,12 @@
 {
-    "plugins": ["prettier-plugin-tailwindcss"],
-    "semi": true,
-    "bracketSpacing": true,
-    "jsxBracketSameLine": true,
-    "printWidth": 100,
-    "endOfLine": "lf",
-    "singleQuote": true,
-    "trailingComma": "all",
-    "tabWidth": 4
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindConfig": "./config/tailwind.config.ts",
+  "semi": true,
+  "bracketSpacing": true,
+  "bracketSameLine": true,
+  "printWidth": 100,
+  "endOfLine": "lf",
+  "singleQuote": true,
+  "trailingComma": "all",
+  "tabWidth": 2
 }
