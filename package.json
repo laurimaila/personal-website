@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest --config ./config/vitest.config.mts",
+    "test:e2e": "playwright test --config=config/playwright.config.ts",
     "lint": "prettier --check . && eslint",
     "format": "prettier --write ."
   },
@@ -42,6 +43,7 @@
     "url-join": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^24.10.4",

@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+test-results
+playwright-report
 
 # next.js
 /.next/
@@ -26,11 +28,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
-.env
-
-# k8s
-/secrets
+.env*
+!.env.example
+!.env.e2e
 
 # typescript
 *.tsbuildinfo
