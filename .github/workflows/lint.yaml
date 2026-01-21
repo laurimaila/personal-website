@@ -3,7 +3,6 @@ run-name: Lint - ${{ github.event.head_commit.message }}
 
 on:
   push:
-  pull_request:
   workflow_call:
 
 jobs:
