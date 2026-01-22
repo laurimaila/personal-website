@@ -58,3 +58,5 @@ services:
 
 volumes:
   personal-website-data-e2e:
+# docker compose --env-file .env.e2e -f compose.e2e.yaml up --build --force-recreate -d
+# docker compose --env-file .env.e2e -f compose.e2e.yaml down -v
