@@ -55,6 +55,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=${{ matrix.environment == 'prod' }}
           tags: |
             type=semver,pattern={{version}},enable=${{ matrix.environment == 'prod' }}
             type=semver,pattern={{version}}-compose,enable=${{ matrix.environment == 'prod-compose' }}

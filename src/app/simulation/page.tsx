@@ -1,11 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import LorenzSystem from '@/components/LorenzSystem';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+
+const LorenzSystem = dynamic(() => import('@/components/LorenzSystem'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-black/60" />,
+});
 
 // Only rerender the simulation when parameters change
 const MemoLorenzSystem = React.memo(LorenzSystem);

@@ -2,7 +2,6 @@ name: Test E2E
 run-name: Test E2E - ${{ github.event.head_commit.message }}
 
 on:
-  push:
   workflow_call:
 
 jobs:
