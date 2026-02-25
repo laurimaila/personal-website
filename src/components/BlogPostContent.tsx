@@ -14,9 +14,9 @@ export const BlogPostContent = ({ post }: { post: BlogPost }) => {
   const { title, date_created, date_updated, author, content } = post;
   return (
     <div>
-      <div className="prose mx-auto mb-10 break-words dark:prose-invert lg:prose-xl lg:mt-20 lg:prose-h1:text-4xl">
+      <div className="prose dark:prose-invert lg:prose-xl lg:prose-h1:text-4xl mx-auto mb-10 wrap-break-word lg:mt-20">
         <h1 className="lg:mb-4">{title}</h1>
-        <div className="mt-4 text-sm opacity-40 lg:mb-7 lg:mt-0">
+        <div className="mt-4 text-sm opacity-40 lg:mt-0 lg:mb-7">
           {Intl.DateTimeFormat('fi-FI').format(new Date(date_updated || date_created)) +
             ' ' +
             author}

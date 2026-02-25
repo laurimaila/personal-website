@@ -1,6 +1,5 @@
 {
   "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindConfig": "./config/tailwind.config.ts",
   "semi": true,
   "bracketSpacing": true,
   "bracketSameLine": true,

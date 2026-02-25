@@ -21,7 +21,7 @@ export async function generateMetadata() {
 const Page = async () => {
   return (
     <div className="container mx-auto px-5">
-      <div className="blog-content prose mx-auto pb-10 pt-20 dark:prose-invert lg:prose-lg">
+      <div className="blog-content prose dark:prose-invert lg:prose-lg mx-auto pt-20 pb-10">
         <MDXRemote source={markdown} />
       </div>
     </div>

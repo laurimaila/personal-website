@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
-import { SiGithub } from '@icons-pack/react-simple-icons';
+import { FaGithub } from 'react-icons/fa';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FC, JSX } from 'react';
@@ -32,7 +32,7 @@ const menuItems: MenuItem[] = [
     name: 'Github',
     href: 'https://github.com/laurimaila/personal-website',
     openInNewTab: true,
-    icon: <SiGithub size={24} />,
+    icon: <FaGithub size={24} />,
   },
 ];
 
@@ -58,7 +58,7 @@ export const TopNavigation: FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  'rounded-md py-2 hover:text-primary-foreground/60',
+                  'hover:text-primary-foreground/60 rounded-md py-2',
                   isActive(item) ? 'bg-accent text-accent-foreground' : '',
                 )}>
                 {item.icon ? item.icon : item.name}
@@ -67,7 +67,7 @@ export const TopNavigation: FC = () => {
               <Link
                 href={item.href}
                 className={cn(
-                  'rounded-md px-3 py-2 hover:text-primary-foreground/60',
+                  'hover:text-primary-foreground/60 rounded-md px-3 py-2',
                   isActive(item) ? 'bg-accent text-accent-foreground' : '',
                 )}>
                 {item.icon ? item.icon : item.name}
@@ -83,7 +83,7 @@ export const TopNavigation: FC = () => {
               <Menu size="24" />
             </button>
           </SheetTrigger>
-          <SheetContent className="z-[99] w-[60vw]">
+          <SheetContent className="z-99 w-[60vw]">
             <SheetHeader>
               <SheetTitle className="sr-only">Mobile navigation menu</SheetTitle>
               <SheetDescription className="sr-only">Navigation links</SheetDescription>

@@ -35,7 +35,7 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'm-auto min-h-screen max-w-6xl bg-background font-sans antialiased',
+          'bg-background m-auto min-h-screen max-w-6xl font-sans antialiased',
           fontSans.variable,
         )}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

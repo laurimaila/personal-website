@@ -37,7 +37,7 @@ export default function PhysicsPage() {
   };
 
   return (
-    <div className="flex h-[100svh] w-full flex-col">
+    <div className="flex h-svh w-full flex-col">
       <div className="relative flex-1 overflow-hidden">
         <MemoLorenzSystem {...params} />
       </div>
@@ -51,7 +51,7 @@ export default function PhysicsPage() {
                 id="sigma"
                 value={inputs.sigma}
                 onChange={(e) => setInputs({ ...inputs, sigma: e.target.value })}
-                className="w-[6rem] border-zinc-700"
+                className="w-24 border-zinc-700"
               />
             </div>
             <div className="flex flex-col items-center space-y-2">
@@ -60,7 +60,7 @@ export default function PhysicsPage() {
                 id="rho"
                 value={inputs.rho}
                 onChange={(e) => setInputs({ ...inputs, rho: e.target.value })}
-                className="w-[6rem] border-zinc-700"
+                className="w-24 border-zinc-700"
               />
             </div>
             <div className="flex flex-col items-center space-y-2">
@@ -69,10 +69,10 @@ export default function PhysicsPage() {
                 id="beta"
                 value={inputs.beta}
                 onChange={(e) => setInputs({ ...inputs, beta: e.target.value })}
-                className="w-[6rem] border-zinc-700"
+                className="w-24 border-zinc-700"
               />
             </div>
-            <Button onClick={handleUpdate} className="mx-auto w-[6rem]">
+            <Button onClick={handleUpdate} className="mx-auto w-24">
               Update
             </Button>
           </CardContent>

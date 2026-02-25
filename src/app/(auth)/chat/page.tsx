@@ -152,7 +152,7 @@ const ChatPage = () => {
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+        <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
       </div>
     );
   }
@@ -185,7 +185,7 @@ const ChatPage = () => {
               <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
             </div>
           ) : error ? (
-            <div className="py-4 text-center text-destructive">
+            <div className="text-destructive py-4 text-center">
               {error}
               <button onClick={() => window.location.reload()} className="ml-2 underline">
                 Retry
@@ -198,11 +198,11 @@ const ChatPage = () => {
                   key={index}
                   className={`p-3 ${
                     isOwnMessage(message, user)
-                      ? 'ml-auto bg-primary text-primary-foreground'
+                      ? 'bg-primary text-primary-foreground ml-auto'
                       : 'bg-secondary text-secondary-foreground'
-                  } max-w-[95%] break-words md:max-w-[80%]`}>
+                  } max-w-[95%] wrap-break-word md:max-w-[80%]`}>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="max-w-[60%] break-all text-sm font-semibold">
+                    <span className="max-w-[60%] text-sm font-semibold break-all">
                       {isOwnMessage(message, user) ? 'You' : message.creator}
                     </span>
                     {message.createdAt && (
@@ -229,7 +229,7 @@ const ChatPage = () => {
                 }
               }}
               placeholder="Type a message..."
-              className="flex-1 rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-ring"
+              className="focus:ring-ring flex-1 rounded-lg border p-3 focus:ring-2 focus:outline-hidden"
               disabled={!connected}
             />
             <Button

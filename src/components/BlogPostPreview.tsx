@@ -7,9 +7,9 @@ import type { BlogPost } from '@/lib/directus';
 
 export const BlogPostPreview = ({ post }: { post: BlogPost }) => {
   return (
-    <div className="break-words">
+    <div className="wrap-break-word">
       <Link href={`/blog/${post.slug}`}>
-        <div className="relative aspect-[16/9]">
+        <div className="relative aspect-video">
           {post.banner ? (
             <Image
               unoptimized
@@ -20,21 +20,21 @@ export const BlogPostPreview = ({ post }: { post: BlogPost }) => {
               src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${post.banner}?format=avif`}
             />
           ) : (
-            <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-blue-900 via-slate-800 to-indigo-900">
+            <div className="relative h-full w-full overflow-hidden bg-linear-to-br from-blue-900 via-slate-800 to-indigo-900">
               {/* Single light orb in lower left corner of gradient */}
-              <div className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-white/10 blur-xl"></div>
+              <div className="absolute right-6 bottom-6 h-16 w-16 rounded-full bg-white/10 blur-xl"></div>
             </div>
           )}
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 md:col-span-2">
-          <h2 className="font-sans text-2xl font-semibold tracking-tighter text-foreground md:text-3xl">
+          <h2 className="text-foreground font-sans text-xl font-semibold tracking-tighter md:text-2xl">
             {post.title}
           </h2>
-          <div className="prose tracking-tighter text-muted-foreground lg:prose-lg">
+          <div className="prose text-muted-foreground lg:prose-lg tracking-tighter">
             {formatDate(post.date_created, 'd MMMM yyyy')}
           </div>
-          <div className="prose line-clamp-4 leading-relaxed text-muted-foreground lg:prose-lg md:text-lg">
+          <div className="prose text-muted-foreground lg:prose-lg line-clamp-4 leading-relaxed md:text-lg">
             {post.author}
           </div>
         </div>

@@ -110,7 +110,7 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
               </button>
             </div>
 
-            {error && <div className="text-sm text-destructive">{error}</div>}
+            {error && <div className="text-destructive text-sm">{error}</div>}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Loading...' : isLogin ? 'Login' : 'Register'}
@@ -137,7 +137,7 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
                 setIsLogin(!isLogin);
                 setError(null);
               }}
-              className="text-sm text-primary underline">
+              className="text-primary text-sm underline">
               {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
             </button>
           </div>
