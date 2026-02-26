@@ -44,18 +44,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
       return true;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('AuthContext Login error:', error);
       return false;
     }
   };
 
   const register = async (username: string, password: string): Promise<boolean> => {
     try {
-      const userData = await authApi.register({ username, password });
-      setUser(userData);
+      await authApi.register({ username, password });
       return true;
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('AuthContext Registration error:', error);
       return false;
     }
   };

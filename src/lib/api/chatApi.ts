@@ -94,7 +94,7 @@ export const chatApi = {
 
   async testConnection(): Promise<boolean> {
     try {
-      const response = await apiFetch('/api/health');
+      const response = await apiFetch('/health');
       return response.ok;
     } catch (error) {
       return false;

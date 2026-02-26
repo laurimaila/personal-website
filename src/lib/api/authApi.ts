@@ -51,12 +51,14 @@ export const authApi = {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Login failed');
+        console.error(`Login failed with status ${response.status}: ${errorText}`);
         throw new Error(errorText);
       }
 
       return response.json();
     } catch (error) {
       if (error instanceof Error) {
+        console.error('Login request error:', error.message);
         throw error;
       }
       throw new Error('Login request failed');
@@ -72,12 +74,14 @@ export const authApi = {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Registration failed');
+        console.error(`Registration failed with status ${response.status}: ${errorText}`);
         throw new Error(errorText);
       }
 
       return response.json();
     } catch (error) {
       if (error instanceof Error) {
+        console.error('Registration request error:', error.message);
         throw error;
       }
       throw new Error('Registration request failed');

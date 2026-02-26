@@ -16,8 +16,17 @@ export async function registerUser(page: Page, username: string, password = 'tes
   await page.getByPlaceholder('Password').fill(password);
   await registerButton.click();
 
+  // Check for error messages if they appear
+  const errorAlert = page.locator('.text-destructive');
+  const errorVisible = await errorAlert.isVisible();
+  if (errorVisible) {
+    const errorText = await errorAlert.innerText();
+    throw new Error(`Registration failed with error: ${errorText}`);
+  }
+
   // Verify registration and auto-login to chat
-  await expect(page.getByText('Chatting as: ' + username)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText('Chatting as: ' + username)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
 }
 
 export async function sendMessage(page: Page, message: string) {

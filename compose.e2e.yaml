@@ -1,17 +1,4 @@
 services:
-  next:
-    build:
-      context: .
-      args:
-        - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
-        - NEXT_PUBLIC_DIRECTUS_URL=${NEXT_PUBLIC_DIRECTUS_URL}
-        - NEXT_PUBLIC_APP_VERSION=test-e2e
-    ports:
-      - '3001:3000'
-    environment:
-      - NODE_ENV=production
-
   backend:
     image: ghcr.io/laurimaila/backend-personal-website:latest
     ports:
@@ -19,17 +6,26 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - CORS_ORIGINS=${CORS_ORIGINS}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - PHYSICS_SVC_URL=${PHYSICS_SVC_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS}
+      - CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=test-db
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - CONNECTION_STRING=Host=db;Database=test-db;Username=root;Password=root
+      - PHYSICS_SVC_URL=http://physics-svc:50051
+      - JWT_SECRET_KEY=uq9MU4Jng5HpHPu3L3VpL0cYfeAYCmzWeYh2vn1Qxmi
+      - JWT_EXPIRY_HOURS=24
     depends_on:
+      db:
+        condition: service_healthy
       migration-svc:
         condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8080/health || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   physics-svc:
     image: ghcr.io/laurimaila/physics-svc:latest
@@ -37,29 +33,27 @@ services:
   migration-svc:
     image: ghcr.io/laurimaila/liquibase-svc:latest
     environment:
-      - JDBC_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_USER=${POSTGRES_USER}
+      - JDBC_URL=jdbc:postgresql://db:5432/test-db
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
     depends_on:
       db:
         condition: service_healthy
 
   db:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     volumes: # Store data in a named docker volume
       - personal-website-data-e2e:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=test-db
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
-      interval: 10s
+      test: ['CMD-SHELL', 'pg_isready -U root -d test-db']
+      interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
 
 volumes:
   personal-website-data-e2e:
-# docker compose --env-file .env.e2e -f compose.e2e.yaml up --build --force-recreate -d
-# docker compose --env-file .env.e2e -f compose.e2e.yaml down -v
