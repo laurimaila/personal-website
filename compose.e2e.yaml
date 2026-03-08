@@ -21,7 +21,7 @@ services:
       migration-svc:
         condition: service_completed_successfully
     healthcheck:
-      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8080/health || exit 1']
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8080/api/health || exit 1']
       interval: 5s
       timeout: 5s
       retries: 10
