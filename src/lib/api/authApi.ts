@@ -17,6 +17,35 @@ export type { User, LoginRequest, RegisterRequest };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+interface ApiError {
+  code?: string;
+  message?: string;
+  errors?: string[];
+}
+
+async function handleResponse<T>(response: Response, defaultErrorMessage: string): Promise<T> {
+  if (response.ok) {
+    return response.json();
+  }
+
+  let errorMessage = defaultErrorMessage;
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const errorData = (await response.json()) as ApiError;
+      if (errorData.errors && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+  } catch (e) {
+    console.error('Error backend ApiError response', e);
+  }
+
+  throw new Error(errorMessage);
+}
+
 // Fetch function with cookies for authentication
 const apiFetch = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -43,49 +72,21 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}): Promise<Re
 
 export const authApi = {
   async login(credentials: LoginRequest): Promise<User> {
-    try {
-      const response = await apiFetch('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      });
+    const response = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Login failed');
-        console.error(`Login failed with status ${response.status}: ${errorText}`);
-        throw new Error(errorText);
-      }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Login request error:', error.message);
-        throw error;
-      }
-      throw new Error('Login request failed');
-    }
+    return handleResponse<User>(response, 'Login failed');
   },
 
   async register(userData: RegisterRequest): Promise<User> {
-    try {
-      const response = await apiFetch('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData),
-      });
+    const response = await apiFetch('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Registration failed');
-        console.error(`Registration failed with status ${response.status}: ${errorText}`);
-        throw new Error(errorText);
-      }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Registration request error:', error.message);
-        throw error;
-      }
-      throw new Error('Registration request failed');
-    }
+    return handleResponse<User>(response, 'Registration failed');
   },
 
   async checkAuth(): Promise<User | null> {

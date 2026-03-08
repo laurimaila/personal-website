@@ -28,29 +28,21 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
 
     try {
       if (isLogin) {
-        const success = await login(username, password);
-        if (success) {
-          onSuccess();
-        } else {
-          setError('Invalid credentials');
-        }
+        await login(username, password);
+        onSuccess();
       } else {
         // Registration followed by automatic login
-        const registerSuccess = await register(username, password);
-        if (registerSuccess) {
-          // Attempt login after successful registration
-          const loginSuccess = await login(username, password);
-          if (loginSuccess) {
-            onSuccess();
-          } else {
-            setError('There was an error during login. Please try again later.');
-          }
-        } else {
-          setError('Registration failed');
-        }
+        await register(username, password);
+        // Attempt login after successful registration
+        await login(username, password);
+        onSuccess();
       }
     } catch (error) {
-      setError('An error occurred. Please try again.');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,14 +53,14 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
     setError(null);
 
     try {
-      const success = await login('Visitor', 'VisitorPassword');
-      if (success) {
-        onSuccess();
-      } else {
-        setError('Visitor login failed');
-      }
+      await login('Visitor', 'VisitorPassword');
+      onSuccess();
     } catch (error) {
-      setError('Failed to login as visitor');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to login as visitor');
+      }
     } finally {
       setIsVisitorLoading(false);
     }

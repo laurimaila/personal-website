@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error('AuthContext Login error:', error);
-      return false;
+      throw error;
     }
   };
 
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error('AuthContext Registration error:', error);
-      return false;
+      throw error;
     }
   };
 
