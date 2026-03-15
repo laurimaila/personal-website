@@ -5,7 +5,7 @@ import { TopNavigation } from '@/components/TopNavigation';
 
 const Header: FC = () => {
   return (
-    <section className="mx-5 mt-5 mb-12 flex items-center justify-between md:mx-0 md:mt-16">
+    <section className="mx-5 mt-5 mb-6 flex items-center justify-between md:mx-0 md:mt-16 md:mb-12">
       <Link href="/">
         <h1 className="text-3xl leading-tight font-bold tracking-tighter md:text-4xl md:leading-none">
           {config.blog.name}

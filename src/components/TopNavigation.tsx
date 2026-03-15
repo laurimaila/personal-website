@@ -26,7 +26,8 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: 'Blog', href: '/' },
   { name: 'About', href: '/about' },
-  { name: 'Simulation', href: '/simulation' },
+  { name: 'Electricity', href: '/electricity' },
+  { name: 'Sim', href: '/sim' },
   { name: 'Chat', href: '/chat' },
   {
     name: 'Github',

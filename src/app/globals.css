@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility container {
   margin-inline: auto;
   padding-inline: 2rem;
@@ -27,6 +34,9 @@
 
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-tertiary: hsl(var(--tertiary));
+  --color-tertiary-foreground: hsl(var(--tertiary-foreground));
 
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
@@ -107,6 +117,9 @@
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
 
+    --tertiary: 18 92% 62%;
+    --tertiary-foreground: 0 0% 98%;
+
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
@@ -139,6 +152,9 @@
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 236 90% 97%;
 
+    --tertiary: 18 92% 67%;
+    --tertiary-foreground: 236 90% 97%;
+
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
@@ -164,5 +180,22 @@
 
   .blog-content img {
     @apply w-full;
+  }
+
+  .recharts-wrapper,
+  .recharts-wrapper *,
+  .recharts-surface,
+  .recharts-surface *,
+  .recharts-layer,
+  .recharts-layer *,
+  .recharts-sector,
+  .recharts-curve,
+  .recharts-tooltip-cursor,
+  .recharts-rectangle,
+  .recharts-dot,
+  .recharts-active-dot,
+  .recharts-tooltip-wrapper,
+  svg.recharts-surface {
+    outline: none !important;
   }
 }
