@@ -28,21 +28,19 @@ export function getFormattedData(
   if (view === 'Day') {
     const startRange = startOfDay(selectedDate);
     const endRange = endOfDay(selectedDate);
-    const startTime = startRange.getTime();
-    const endTime = endRange.getTime();
 
     const dataMap = new Map<number, PriceData>();
     for (const d of data) {
       const ts = d.timestamp.getTime();
-      if (ts >= startTime && ts <= endTime) {
+      if (ts >= startRange.getTime() && ts <= endRange.getTime()) {
         dataMap.set(ts, d);
-      } else if (ts > endTime) {
+      } else if (ts > endRange.getTime()) {
         break;
       }
     }
 
     const result = [];
-    let current = new Date(startTime);
+    let current = new Date(startRange.getTime());
 
     while (current <= endRange) {
       const ts = current.getTime();
@@ -66,27 +64,22 @@ export function getFormattedData(
   if (view === 'Month') {
     const monthStart = startOfMonth(selectedDate);
     const monthEnd = nowIfInSameMonth(selectedDate);
-    const startTime = monthStart.getTime();
 
-    const dayGroups = new Map<number, number[]>();
+    const dataMap = new Map<number, number | null>();
     for (const d of data) {
-      const ts = d.timestamp.getTime();
-      if (ts < startTime) continue;
-      if (ts > monthEnd.getTime()) break;
-
-      const dayKey = startOfDay(d.timestamp).getTime();
-      if (!dayGroups.has(dayKey)) dayGroups.set(dayKey, []);
-      dayGroups.get(dayKey)!.push((useVat ? d.priceVat : d.price) || 0);
+      dataMap.set(
+        startOfDay(d.timestamp).getTime(),
+        d.priceVat !== undefined ? (useVat ? d.priceVat : d.price) : null,
+      );
     }
 
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
     return days.map((day) => {
       const dayTs = day.getTime();
-      const prices = dayGroups.get(dayTs) || [];
-      const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+      const avgPrice = dataMap.get(dayTs);
 
       return {
-        displayPrice: avgPrice,
+        displayPrice: avgPrice !== undefined ? avgPrice : null,
         formattedTime: format(day, 'd.M.'),
         timestampKey: dayTs,
         fullDate: format(day, 'eeee d.M.yyyy', { locale: fi }),
@@ -97,27 +90,22 @@ export function getFormattedData(
   if (view === 'Year') {
     const yearStart = startOfYear(selectedDate);
     const yearEnd = nowIfInSameYear(selectedDate);
-    const startTime = yearStart.getTime();
 
-    const monthGroups = new Map<number, number[]>();
+    const dataMap = new Map<number, number | null>();
     for (const d of data) {
-      const ts = d.timestamp.getTime();
-      if (ts < startTime) continue;
-      if (ts > yearEnd.getTime()) break;
-
-      const monthKey = startOfMonth(d.timestamp).getTime();
-      if (!monthGroups.has(monthKey)) monthGroups.set(monthKey, []);
-      monthGroups.get(monthKey)!.push((useVat ? d.priceVat : d.price) || 0);
+      dataMap.set(
+        startOfMonth(d.timestamp).getTime(),
+        d.priceVat !== undefined ? (useVat ? d.priceVat : d.price) : null,
+      );
     }
 
     const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
     return months.map((month) => {
       const monthTs = month.getTime();
-      const prices = monthGroups.get(monthTs) || [];
-      const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+      const avgPrice = dataMap.get(monthTs);
 
       return {
-        displayPrice: avgPrice,
+        displayPrice: avgPrice !== undefined ? avgPrice : null,
         formattedTime: format(month, 'MMMM', { locale: enGB }),
         timestampKey: monthTs,
         fullDate: format(month, 'MMMM yyyy', { locale: enGB }),

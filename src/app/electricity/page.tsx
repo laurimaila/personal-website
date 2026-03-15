@@ -1,19 +1,17 @@
 import { db } from '@/lib/db';
 import { vElectricityPrices } from '@/lib/db/schema';
-import { asc, gte } from 'drizzle-orm';
+import { asc, gte, lte, and } from 'drizzle-orm';
 import { PriceChart } from './PriceDisplay';
-import { subDays } from 'date-fns';
+import { subDays, startOfDay, addDays, endOfDay } from 'date-fns';
 import { PriceData } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 600; // 10 minutes
 
 export default async function ElectricityPage() {
-  const now = new Date();
-  const oneYearAgo = subDays(now, 365);
-  // Finland moved to 15 minute pricing in 1.10.2025
-  const hardLimit = new Date('2025-10-01T00:00:00Z');
+  const nowHelsinki = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }));
 
-  const startDate = oneYearAgo > hardLimit ? oneYearAgo : hardLimit;
+  const startDate = startOfDay(subDays(nowHelsinki, 2));
+  const endDate = endOfDay(addDays(nowHelsinki, 1));
 
   let chartData: PriceData[] = [];
   let error = false;
@@ -23,7 +21,12 @@ export default async function ElectricityPage() {
       const prices = await db
         .select()
         .from(vElectricityPrices)
-        .where(gte(vElectricityPrices.timestamp, startDate))
+        .where(
+          and(
+            gte(vElectricityPrices.timestamp, startDate),
+            lte(vElectricityPrices.timestamp, endDate),
+          ),
+        )
         .orderBy(asc(vElectricityPrices.timestamp));
 
       chartData = prices.map((p) => ({
@@ -49,7 +52,7 @@ export default async function ElectricityPage() {
             <p className="text-muted-foreground">
               {error
                 ? 'Temporary connection issue. Please try again in a few minutes.'
-                : 'Price data currently unavailable.'}
+                : 'Price data unavailable, please check back later.'}
             </p>
           </div>
         )}

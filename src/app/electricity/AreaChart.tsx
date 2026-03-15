@@ -46,7 +46,7 @@ export const PriceChartDisplay = React.memo(
       return 0;
     }, [view]);
 
-    // Shift data points to the middle for visual centering of the cursor
+    // Shift data points for visual centering of the cursor
     const centeredData = useMemo(() => {
       return formattedData.map((d) => ({
         ...d,
@@ -89,7 +89,7 @@ export const PriceChartDisplay = React.memo(
       [dataMap, intervalMs, view],
     );
 
-    // Calculate y-axis ticks to make the chart nice
+    // Calculate nice y-axis ticks
     const yTicks = useMemo(() => {
       const prices =
         (formattedData.map((d) => d.displayPrice).filter((p) => p !== null) as number[]) || [];
@@ -101,7 +101,6 @@ export const PriceChartDisplay = React.memo(
       const targetMax = Math.max(10, dataMax);
       const targetMin = Math.min(0, dataMin);
 
-      // Sensible step size
       let step = 2;
       const range = targetMax - targetMin;
       if (range > 60) step = 20;
@@ -129,8 +128,8 @@ export const PriceChartDisplay = React.memo(
         <ResponsiveContainer
           width="100%"
           height="100%"
+          minWidth={0}
           minHeight={0}
-          debounce={1}
           className="outline-none">
           <AreaChart
             accessibilityLayer={false}
