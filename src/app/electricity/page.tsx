@@ -5,7 +5,7 @@ import { PriceChart } from './PriceDisplay';
 import { subDays } from 'date-fns';
 import { PriceData } from '@/lib/types';
 
-export const revalidate = 1800;
+export const dynamic = 'force-dynamic';
 
 export default async function ElectricityPage() {
   const now = new Date();
