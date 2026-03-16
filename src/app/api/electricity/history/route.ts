@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
 import { vElectricityPrices } from '@/lib/db/schema';
-import { asc, gte, lte, and, sql } from 'drizzle-orm';
-import { startOfDay, endOfDay, parseISO } from 'date-fns';
+import { asc, and, sql } from 'drizzle-orm';
 import { NextResponse, NextRequest } from 'next/server';
 
 // History data can be aggressively cached
@@ -18,23 +17,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const startDate = startOfDay(parseISO(startParam));
-    const endDate = endOfDay(parseISO(endParam));
-
     if (!db) {
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 500 });
     }
+
+    const whereClause = and(
+      sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' >= ${startParam}`,
+      sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' < (${endParam}::date + interval '1 day')`,
+    );
 
     if (!type) {
       const prices = await db
         .select()
         .from(vElectricityPrices)
-        .where(
-          and(
-            gte(vElectricityPrices.timestamp, startDate),
-            lte(vElectricityPrices.timestamp, endDate),
-          ),
-        )
+        .where(whereClause)
         .orderBy(asc(vElectricityPrices.timestamp));
 
       return NextResponse.json(
@@ -55,17 +51,12 @@ export async function GET(request: NextRequest) {
           priceVat: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.priceVat} AS NUMERIC), 0))`,
         })
         .from(vElectricityPrices)
-        .where(
-          and(
-            gte(vElectricityPrices.timestamp, startDate),
-            lte(vElectricityPrices.timestamp, endDate),
-          ),
-        )
+        .where(whereClause)
         .groupBy(
           sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
         )
         .having(
-          sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startDate.toISOString()}`,
+          sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startParam}`,
         )
         .orderBy(
           asc(
@@ -85,17 +76,12 @@ export async function GET(request: NextRequest) {
           priceVat: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.priceVat} AS NUMERIC), 0))`,
         })
         .from(vElectricityPrices)
-        .where(
-          and(
-            gte(vElectricityPrices.timestamp, startDate),
-            lte(vElectricityPrices.timestamp, endDate),
-          ),
-        )
+        .where(whereClause)
         .groupBy(
           sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
         )
         .having(
-          sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startDate.toISOString()}`,
+          sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startParam}`,
         )
         .orderBy(
           asc(

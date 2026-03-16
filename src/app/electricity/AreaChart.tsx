@@ -130,6 +130,7 @@ export const PriceChartDisplay = React.memo(
           height="100%"
           minWidth={0}
           minHeight={0}
+          debounce={1}
           className="outline-none">
           <AreaChart
             accessibilityLayer={false}

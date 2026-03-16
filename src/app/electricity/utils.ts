@@ -125,10 +125,6 @@ function nowIfInSameMonth(date: Date) {
 }
 
 function nowIfInSameYear(date: Date) {
-  const now = new Date();
-  if (date.getFullYear() === now.getFullYear()) {
-    return now;
-  }
   return endOfYear(date);
 }
 

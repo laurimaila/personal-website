@@ -76,7 +76,7 @@ const PriceDisplay = React.memo(function PriceDisplay({ displayPoint, view }: Pr
   const unit = 'c/kWh';
 
   const subLabel = useMemo(() => {
-    if (!displayPoint || !displayPoint.timestampKey) return '';
+    if (!displayPoint || !displayPoint.timestampKey) return '—';
     const date = new Date(displayPoint.timestampKey);
 
     if (view === 'Day') {
@@ -91,21 +91,19 @@ const PriceDisplay = React.memo(function PriceDisplay({ displayPoint, view }: Pr
     return '';
   }, [displayPoint, view]);
 
-  if (!displayPoint) return null;
-
-  const hasPrice = displayPoint.displayPrice !== null && displayPoint.displayPrice !== undefined;
+  const hasPrice = displayPoint?.displayPrice !== null && displayPoint?.displayPrice !== undefined;
 
   return (
-    <div className="flex flex-col justify-center">
+    <div className="flex min-h-12 flex-col justify-center">
       <CardTitle className="flex items-baseline gap-2 leading-none">
         <span className="text-primary text-2xl font-black tabular-nums">
-          {hasPrice ? displayPoint.displayPrice.toFixed(2) : 'No data'}
+          {hasPrice ? displayPoint.displayPrice.toFixed(2) : '—'}
           {hasPrice && (
             <span className="text-muted-foreground ml-1 text-sm font-normal">{unit}</span>
           )}
         </span>
       </CardTitle>
-      <CardDescription className="text-[13px] tracking-wider">{subLabel}</CardDescription>
+      <CardDescription className="min-h-5 text-[13px] tracking-wider">{subLabel}</CardDescription>
     </div>
   );
 });

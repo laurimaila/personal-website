@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { getFormattedData, getNowTimestamp, ViewType } from './utils';
 import { ChartHeader } from './ChartHeader';
-import { PriceChartDisplay } from './AreaChart';
 import {
   startOfDay,
   addDays,
@@ -23,6 +23,10 @@ interface PriceChartProps {
   data: PriceData[];
 }
 
+const PriceChartDisplay = dynamic(() => import('./AreaChart').then((m) => m.PriceChartDisplay), {
+  ssr: false,
+});
+
 export function PriceChart({ data: initialData }: PriceChartProps) {
   const [useVat, setUseVat] = useState(true);
   const [view, setView] = useState<ViewType>('Day');
@@ -33,6 +37,7 @@ export function PriceChart({ data: initialData }: PriceChartProps) {
   const [monthlyData, setMonthlyData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadedAggregates, setLoadedAggregates] = useState({ daily: false, monthly: false });
+  const lastFetchedMin = useRef<number | null>(null);
 
   const fetchRange = useCallback(async (start: Date, end: Date, type?: 'daily' | 'monthly') => {
     setLoading(true);
@@ -56,12 +61,15 @@ export function PriceChart({ data: initialData }: PriceChartProps) {
         }));
 
         const merge = (prev: PriceData[]) => {
+          if (parsed.length === 0) return prev;
           const combined = [...prev, ...parsed];
           const uniqueMap = new Map<number, PriceData>();
           combined.forEach((d) => uniqueMap.set(d.timestamp.getTime(), d));
-          return Array.from(uniqueMap.values()).sort(
+          const result = Array.from(uniqueMap.values()).sort(
             (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
           );
+          if (result.length === prev.length) return prev;
+          return result;
         };
 
         if (type === 'daily') {
@@ -113,9 +121,13 @@ export function PriceChart({ data: initialData }: PriceChartProps) {
     if (view !== 'Day' || loading || hourlyData.length === 0) return;
     const hardLimit = new Date('2025-10-01T00:00:00Z');
     const minInMemory = hourlyData[0].timestamp;
-    if (minInMemory <= hardLimit) return;
+    const minInMemoryTs = minInMemory.getTime();
+
+    if (minInMemoryTs <= hardLimit.getTime()) return;
+
     const threshold = addDays(minInMemory, 1);
-    if (selectedDate <= threshold) {
+    if (selectedDate <= threshold && lastFetchedMin.current !== minInMemoryTs) {
+      lastFetchedMin.current = minInMemoryTs;
       const fetchEnd = subDays(minInMemory, 1);
       const fetchStart = subDays(fetchEnd, 6);
       fetchRange(fetchStart > hardLimit ? fetchStart : hardLimit, fetchEnd);
@@ -144,9 +156,28 @@ export function PriceChart({ data: initialData }: PriceChartProps) {
     const hardLimit = new Date('2025-10-01T00:00:00Z');
     const dataSet = view === 'Day' ? hourlyData : view === 'Month' ? dailyData : monthlyData;
     if (dataSet.length === 0) return { min: hardLimit, max: new Date() };
+
+    const lastPoint = dataSet[dataSet.length - 1];
+    const lastTimestamp = lastPoint.timestamp;
+    const lastDayStart = startOfDay(lastTimestamp);
+
+    if (view === 'Day') {
+      const now = new Date();
+      const todayStart = startOfDay(now);
+
+      // If the last day is in the future and doesn't have data up to at least 23:00,
+      // we treat it as incomplete and don't allow navigating to it.
+      if (lastDayStart > todayStart && lastTimestamp.getHours() < 23) {
+        return {
+          min: hardLimit,
+          max: subDays(lastDayStart, 1),
+        };
+      }
+    }
+
     return {
       min: hardLimit,
-      max: startOfDay(dataSet[dataSet.length - 1].timestamp),
+      max: lastDayStart,
     };
   }, [hourlyData, dailyData, monthlyData, view]);
 
@@ -198,7 +229,7 @@ export function PriceChart({ data: initialData }: PriceChartProps) {
       />
 
       <CardContent className="px-0 pt-4 pb-0 sm:px-6 sm:pt-6 sm:pb-2">
-        <div className="h-80 w-full sm:h-90">
+        <div className="relative h-80 w-full sm:h-90">
           <PriceChartDisplay
             formattedData={formattedData}
             nowTimestamp={nowTimestamp}

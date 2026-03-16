@@ -1,17 +1,18 @@
 import { db } from '@/lib/db';
 import { vElectricityPrices } from '@/lib/db/schema';
-import { asc, gte, lte, and } from 'drizzle-orm';
+import { asc, and, sql } from 'drizzle-orm';
 import { PriceChart } from './PriceDisplay';
-import { subDays, startOfDay, addDays, endOfDay } from 'date-fns';
+import { subDays, addDays, format } from 'date-fns';
 import { PriceData } from '@/lib/types';
 
 export const revalidate = 600; // 10 minutes
 
 export default async function ElectricityPage() {
-  const nowHelsinki = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }));
+  const now = new Date();
+  const nowHelsinki = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }));
 
-  const startDate = startOfDay(subDays(nowHelsinki, 2));
-  const endDate = endOfDay(addDays(nowHelsinki, 1));
+  const startDateStr = format(subDays(nowHelsinki, 2), 'yyyy-MM-dd');
+  const endDateStr = format(addDays(nowHelsinki, 1), 'yyyy-MM-dd');
 
   let chartData: PriceData[] = [];
   let error = false;
@@ -23,8 +24,8 @@ export default async function ElectricityPage() {
         .from(vElectricityPrices)
         .where(
           and(
-            gte(vElectricityPrices.timestamp, startDate),
-            lte(vElectricityPrices.timestamp, endDate),
+            sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' >= ${startDateStr}`,
+            sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' < (${endDateStr}::date + interval '1 day')`,
           ),
         )
         .orderBy(asc(vElectricityPrices.timestamp));
