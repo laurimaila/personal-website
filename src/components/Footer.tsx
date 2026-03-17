@@ -9,7 +9,7 @@ const Footer: FC = () => {
     <section className="mx-5 mt-8 mb-12 md:mt-16">
       <div className="flex items-center justify-between">
         <div className="text-muted-foreground flex flex-col text-sm md:flex-row md:items-baseline">
-          <span>© Lauri Maila {new Date().getFullYear()}</span>
+          <span>© Lauri Maila 2026</span>
           {process.env.NEXT_PUBLIC_APP_VERSION && (
             <span className="text-xs opacity-70 md:ml-2">
               {process.env.NEXT_PUBLIC_APP_VERSION}

@@ -1,100 +1,74 @@
 import { db } from '@/lib/db';
-import { vElectricityPrices } from '@/lib/db/schema';
-import { asc, and, sql } from 'drizzle-orm';
+import { hourlyPricesView, dailyPricesView, monthlyPricesView } from '@/lib/db/schema';
+import { and, gte, lt, asc } from 'drizzle-orm';
 import { NextResponse, NextRequest } from 'next/server';
 
-// History data can be aggressively cached
-export const revalidate = 86400;
+export const revalidate = 600;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const startParam = searchParams.get('start');
-  const endParam = searchParams.get('end');
-  const type = searchParams.get('type'); // 'daily' or 'monthly' or null for 15 minute data
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const granularity = (searchParams.get('granularity') || 'hourly') as
+    | 'hourly'
+    | 'daily'
+    | 'monthly';
 
-  if (!startParam || !endParam) {
-    return NextResponse.json({ error: 'Missing start or end parameters' }, { status: 400 });
+  if (!from || !to) {
+    return NextResponse.json({ error: 'Missing from or to parameter' }, { status: 400 });
   }
 
   try {
-    if (!db) {
+    if (!db)
       return NextResponse.json({ error: 'Database connection unavailable' }, { status: 500 });
-    }
 
-    const whereClause = and(
-      sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' >= ${startParam}`,
-      sql`${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki' < (${endParam}::date + interval '1 day')`,
-    );
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
 
-    if (!type) {
-      const prices = await db
-        .select()
-        .from(vElectricityPrices)
-        .where(whereClause)
-        .orderBy(asc(vElectricityPrices.timestamp));
-
-      return NextResponse.json(
-        prices.map((p) => ({
-          timestamp: p.timestamp,
-          price: p.price ? parseFloat(p.price) : null,
-          priceVat: p.priceVat ? parseFloat(p.priceVat) : null,
-        })),
-      );
-    }
-
-    // Daily averages for "Month" view
-    if (type === 'daily') {
-      const dailyPrices = await db
+    let query;
+    if (granularity === 'hourly') {
+      query = db
         .select({
-          timestamp: sql<Date>`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
-          price: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.price} AS NUMERIC), 0))`,
-          priceVat: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.priceVat} AS NUMERIC), 0))`,
+          timestamp: hourlyPricesView.timestamp,
+          price: hourlyPricesView.priceCentKwh,
+          priceVat: hourlyPricesView.priceVatCentKwh,
         })
-        .from(vElectricityPrices)
-        .where(whereClause)
-        .groupBy(
-          sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
+        .from(hourlyPricesView)
+        .where(
+          and(gte(hourlyPricesView.timestamp, fromDate), lt(hourlyPricesView.timestamp, toDate)),
         )
-        .having(
-          sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startParam}`,
-        )
-        .orderBy(
-          asc(
-            sql`DATE_TRUNC('day', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
-          ),
-        );
-
-      return NextResponse.json(dailyPrices);
-    }
-
-    // Monthly averages for "Year" view
-    if (type === 'monthly') {
-      const monthlyPrices = await db
+        .orderBy(asc(hourlyPricesView.timestamp));
+    } else if (granularity === 'daily') {
+      query = db
         .select({
-          timestamp: sql<Date>`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
-          price: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.price} AS NUMERIC), 0))`,
-          priceVat: sql<number>`AVG(NULLIF(CAST(${vElectricityPrices.priceVat} AS NUMERIC), 0))`,
+          timestamp: dailyPricesView.bucketDay,
+          price: dailyPricesView.avgPriceCentKwh,
+          priceVat: dailyPricesView.avgPriceVatCentKwh,
         })
-        .from(vElectricityPrices)
-        .where(whereClause)
-        .groupBy(
-          sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
-        )
-        .having(
-          sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki') >= ${startParam}`,
-        )
-        .orderBy(
-          asc(
-            sql`DATE_TRUNC('month', ${vElectricityPrices.timestamp} AT TIME ZONE 'Europe/Helsinki')`,
+        .from(dailyPricesView)
+        .where(and(gte(dailyPricesView.bucketDay, fromDate), lt(dailyPricesView.bucketDay, toDate)))
+        .orderBy(asc(dailyPricesView.bucketDay));
+    } else {
+      query = db
+        .select({
+          timestamp: monthlyPricesView.bucketMonth,
+          price: monthlyPricesView.avgPriceCentKwh,
+          priceVat: monthlyPricesView.avgPriceVatCentKwh,
+        })
+        .from(monthlyPricesView)
+        .where(
+          and(
+            gte(monthlyPricesView.bucketMonth, fromDate),
+            lt(monthlyPricesView.bucketMonth, toDate),
           ),
-        );
-
-      return NextResponse.json(monthlyPrices);
+        )
+        .orderBy(asc(monthlyPricesView.bucketMonth));
     }
 
-    return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    const prices = await query;
+    return NextResponse.json(prices);
   } catch (e) {
-    console.error('Failed to fetch historical electricity prices:', e);
-    return NextResponse.json({ error: 'Failed to fetch history' }, { status: 500 });
+    console.error(`Failed to fetch ${granularity} history:`, e);
+    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
   }
 }

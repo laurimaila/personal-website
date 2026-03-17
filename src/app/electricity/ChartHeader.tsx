@@ -1,28 +1,48 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import Link from 'next/link';
 import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ViewType } from './utils';
+import { ViewType, FormattedPoint } from './types';
+import { DATE_HARD_LIMIT } from './constants';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
+import {
+  format,
+  max,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  addDays,
+  subDays,
+  addMonths,
+  subMonths,
+  addYears,
+  subYears,
+  startOfMonth,
+  startOfYear,
+} from 'date-fns';
 
 interface ChartNavigationProps {
-  onNext?: () => void;
-  onPrev?: () => void;
-  canGoNext?: boolean;
-  canGoPrev?: boolean;
   selectedDate: Date;
   view: ViewType;
+  canGoNext?: boolean;
+  canGoPrev?: boolean;
+}
+
+function getUrl(view: ViewType, date: Date) {
+  const viewParam = view.toLowerCase();
+  let dateStr = format(date, 'yyyy-MM-dd');
+  if (viewParam === 'month') dateStr = format(date, 'yyyy-MM');
+  if (viewParam === 'year') dateStr = format(date, 'yyyy');
+  return `/electricity/${viewParam}/${dateStr}`;
 }
 
 const ChartNavigation = React.memo(function ChartNavigation({
-  onNext,
-  onPrev,
-  canGoNext,
-  canGoPrev,
   selectedDate,
   view,
+  canGoNext,
+  canGoPrev,
 }: ChartNavigationProps) {
   const dateLabel = useMemo(() => {
     if (view === 'Day') {
@@ -41,63 +61,68 @@ const ChartNavigation = React.memo(function ChartNavigation({
     return '';
   }, [selectedDate, view]);
 
+  const sub = view === 'Day' ? subDays : view === 'Month' ? subMonths : subYears;
+  const add = view === 'Day' ? addDays : view === 'Month' ? addMonths : addYears;
+  const prevDate = sub(selectedDate, 1);
+  const nextDate = add(selectedDate, 1);
+
   return (
     <div className="flex items-center gap-1 rounded-md border p-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7"
-        onClick={onPrev}
-        disabled={!canGoPrev}>
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+      {canGoPrev ? (
+        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+          <Link href={getUrl(view, prevDate)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 cursor-not-allowed opacity-50"
+          disabled>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+      )}
+
       <span className="min-w-24 px-1 text-center text-xs font-medium capitalize tabular-nums">
         {dateLabel}
       </span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7"
-        onClick={onNext}
-        disabled={!canGoNext}>
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+
+      {canGoNext ? (
+        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+          <Link href={getUrl(view, nextDate)}>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 cursor-not-allowed opacity-50"
+          disabled>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 });
 
 interface PriceDisplayProps {
-  displayPoint: any;
-  view: ViewType;
+  displayPoint: FormattedPoint | null;
 }
 
-// Re-render the price display only when the displayPoint changes
-const PriceDisplay = React.memo(function PriceDisplay({ displayPoint, view }: PriceDisplayProps) {
+const PriceDisplay = React.memo(function PriceDisplay({ displayPoint }: PriceDisplayProps) {
   const unit = 'c/kWh';
 
-  const subLabel = useMemo(() => {
-    if (!displayPoint || !displayPoint.timestampKey) return '—';
-    const date = new Date(displayPoint.timestampKey);
+  const subLabel = displayPoint?.interval ?? displayPoint?.fullDate ?? '—';
 
-    if (view === 'Day') {
-      return displayPoint.interval || displayPoint.formattedTime || '';
-    }
-    if (view === 'Month') {
-      return format(date, 'd.M.yyyy');
-    }
-    if (view === 'Year') {
-      return format(date, 'MMMM yyyy');
-    }
-    return '';
-  }, [displayPoint, view]);
-
-  const hasPrice = displayPoint?.displayPrice !== null && displayPoint?.displayPrice !== undefined;
+  const hasPrice = typeof displayPoint?.displayPrice === 'number';
 
   return (
     <div className="flex min-h-12 flex-col justify-center">
       <CardTitle className="flex items-baseline gap-2 leading-none">
         <span className="text-primary text-2xl font-black tabular-nums">
-          {hasPrice ? displayPoint.displayPrice.toFixed(2) : '—'}
+          {hasPrice ? displayPoint.displayPrice?.toFixed(2) : '—'}
           {hasPrice && (
             <span className="text-muted-foreground ml-1 text-sm font-normal">{unit}</span>
           )}
@@ -110,83 +135,87 @@ const PriceDisplay = React.memo(function PriceDisplay({ displayPoint, view }: Pr
 
 interface ChartControlsProps {
   view: ViewType;
-  setView: (view: ViewType) => void;
+  selectedDate: Date;
   useVat: boolean;
   setUseVat: (useVat: boolean) => void;
 }
 
 const ChartControls = React.memo(function ChartControls({
   view,
-  setView,
+  selectedDate,
   useVat,
   setUseVat,
 }: ChartControlsProps) {
-  const handleToggleVat = useCallback(() => {
-    setUseVat(!useVat);
-  }, [useVat, setUseVat]);
-
   return (
     <div className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-8 sm:py-4">
       <div className="flex gap-1 rounded-md border p-1">
-        {(['Day', 'Month', 'Year'] as ViewType[]).map((v) => (
-          <Button
-            key={v}
-            variant={view === v ? 'default' : 'ghost'}
-            size="sm"
-            className="h-7 w-14 px-3 text-xs capitalize"
-            onClick={() => setView(v)}>
-            {v}
-          </Button>
-        ))}
+        {(['Day', 'Month', 'Year'] as ViewType[]).map((v) => {
+          let targetDate = selectedDate;
+          if (v === 'Month')
+            targetDate = max([startOfMonth(selectedDate), startOfMonth(DATE_HARD_LIMIT)]);
+          if (v === 'Year') targetDate = startOfYear(selectedDate);
+
+          return (
+            <Button
+              key={v}
+              variant={view === v ? 'default' : 'ghost'}
+              size="sm"
+              className="h-7 w-14 px-3 text-xs capitalize"
+              asChild>
+              <Link href={getUrl(v, targetDate)}>{v}</Link>
+            </Button>
+          );
+        })}
       </div>
       <Button
         variant={useVat ? 'default' : 'secondary'}
         size="sm"
         className="h-8 min-w-25 text-xs"
-        onClick={handleToggleVat}>
+        onClick={() => setUseVat(!useVat)}>
         VAT {useVat ? '25.5%' : '0%'}
       </Button>
     </div>
   );
 });
 
-interface ChartHeaderProps extends ChartControlsProps {
-  displayPoint: any;
-  onNext?: () => void;
-  onPrev?: () => void;
+interface ChartHeaderProps {
+  displayPoint: FormattedPoint | null;
+  view: ViewType;
+  selectedDate: Date;
+  useVat: boolean;
+  setUseVat: (useVat: boolean) => void;
   canGoNext?: boolean;
   canGoPrev?: boolean;
-  selectedDate: Date;
 }
 
 export const ChartHeader = React.memo(function ChartHeader({
   displayPoint,
   view,
-  setView,
+  selectedDate,
   useVat,
   setUseVat,
-  onNext,
-  onPrev,
   canGoNext,
   canGoPrev,
-  selectedDate,
 }: ChartHeaderProps) {
   return (
     <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-row items-center gap-4 px-4 py-4 sm:px-8 sm:py-6">
         <ChartNavigation
-          onNext={onNext}
-          onPrev={onPrev}
-          canGoNext={canGoNext}
-          canGoPrev={canGoPrev}
           selectedDate={selectedDate}
           view={view}
+          canGoNext={canGoNext}
+          canGoPrev={canGoPrev}
         />
 
-        <PriceDisplay displayPoint={displayPoint} view={view} />
+        <PriceDisplay displayPoint={displayPoint} />
       </div>
 
-      <ChartControls view={view} setView={setView} useVat={useVat} setUseVat={setUseVat} />
+      <ChartControls
+        view={view}
+        selectedDate={selectedDate}
+        useVat={useVat}
+        setUseVat={setUseVat}
+      />
     </CardHeader>
   );
 });
