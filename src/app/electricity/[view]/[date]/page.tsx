@@ -94,7 +94,12 @@ export default async function ElectricityViewPage({ params }: Props) {
   return (
     <div className="container mx-auto px-0 py-4 sm:px-4 sm:py-10">
       <div className="flex flex-col gap-4 sm:gap-8">
-        <ElectricityPrice initialData={chartData} view={view} selectedDate={selectedDate} />
+        <ElectricityPrice
+          key={`${viewParam}-${dateParam}`}
+          initialData={chartData}
+          view={view}
+          selectedDate={selectedDate}
+        />
       </div>
     </div>
   );
