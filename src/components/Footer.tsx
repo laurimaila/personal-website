@@ -17,10 +17,12 @@ const Footer: FC = () => {
           )}
         </div>
         <div>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/rss" aria-label="RSS feed">
-              <Rss className="h-6 w-6" aria-hidden="true" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            nativeButton={false}
+            render={<Link href="/rss" aria-label="RSS feed"></Link>}>
+            <Rss className="h-6 w-6" aria-hidden="true" />
           </Button>
           <DarkModeToggle />
         </div>

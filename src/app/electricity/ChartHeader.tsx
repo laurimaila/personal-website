@@ -69,10 +69,13 @@ const ChartNavigation = React.memo(function ChartNavigation({
   return (
     <div className="flex items-center gap-1 rounded-md border p-1">
       {canGoPrev ? (
-        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-          <Link href={getUrl(view, prevDate)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          nativeButton={false}
+          render={<Link href={getUrl(view, prevDate)} />}>
+          <ChevronLeft className="h-4 w-4" />
         </Button>
       ) : (
         <Button
@@ -89,10 +92,13 @@ const ChartNavigation = React.memo(function ChartNavigation({
       </span>
 
       {canGoNext ? (
-        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-          <Link href={getUrl(view, nextDate)}>
-            <ChevronRight className="h-4 w-4" />
-          </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          nativeButton={false}
+          render={<Link href={getUrl(view, nextDate)}></Link>}>
+          <ChevronRight className="h-4 w-4" />
         </Button>
       ) : (
         <Button
@@ -161,8 +167,9 @@ const ChartControls = React.memo(function ChartControls({
               variant={view === v ? 'default' : 'ghost'}
               size="sm"
               className="h-7 w-14 px-3 text-xs capitalize"
-              asChild>
-              <Link href={getUrl(v, targetDate)}>{v}</Link>
+              nativeButton={false}
+              render={<Link href={getUrl(v, targetDate)} />}>
+              {v}
             </Button>
           );
         })}

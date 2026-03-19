@@ -79,10 +79,8 @@ export const TopNavigation: FC = () => {
       </div>
       <div className="md:hidden">
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild>
-            <button className="relative" aria-label="Toggle navigation menu">
-              <Menu size="24" />
-            </button>
+          <SheetTrigger className="relative" aria-label="Toggle navigation menu">
+            <Menu size="24" />
           </SheetTrigger>
           <SheetContent className="z-99 w-[60vw]">
             <SheetHeader>

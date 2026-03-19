@@ -51,11 +51,10 @@ export const PriceChart = React.memo(function PriceChartDisplay({
     [setActivePoint, formattedData],
   );
 
-  const onMouseLeave = useCallback(() => setActivePoint(null), [setActivePoint]);
-
   const tickFormatter = useCallback(
     (val: number) => {
       if (view === 'Day') return new Date(val).getHours().toString();
+      if (view === 'Year') return new Date(val).toLocaleString('default', { month: 'short' });
       return formattedData.find((d) => d.timestampKey === val)?.formattedTime ?? '';
     },
     [formattedData, view],
@@ -68,11 +67,20 @@ export const PriceChart = React.memo(function PriceChartDisplay({
 
     const dataMax = Math.max(...prices);
     const dataMin = Math.min(...prices);
-    const targetMax = dataMin < 0 ? dataMax : dataMax * 1.1;
-    const targetMin = dataMin < 0 ? dataMin * 1.1 : 0;
+    const targetMax = Math.max(dataMax * 1.05, 2);
+    const targetMin = dataMin < -0.1 ? dataMin * 1.05 : 0;
     const range = targetMax - targetMin;
 
-    const step = range > 60 ? 20 : range > 30 ? 10 : range > 10 ? 5 : 2;
+    const stepThresholds = [
+      { maxRange: 2, step: 0.5 },
+      { maxRange: 6, step: 1 },
+      { maxRange: 10, step: 2 },
+      { maxRange: 15, step: 3 },
+      { maxRange: 30, step: 5 },
+      { maxRange: Infinity, step: 10 },
+    ];
+    const step = stepThresholds.find(({ maxRange }) => range <= maxRange)!.step;
+
     const roundedMax = Math.ceil(targetMax / step) * step;
     const roundedMin = Math.floor(targetMin / step) * step;
 
@@ -84,10 +92,8 @@ export const PriceChart = React.memo(function PriceChartDisplay({
   const commonProps = {
     data: chartData,
     onMouseMove,
-    onMouseLeave,
     onTouchMove: onMouseMove,
     onTouchStart: onMouseMove,
-    onTouchEnd: onMouseLeave,
     margin: { top: 10, right: 10, left: 10, bottom: 0 },
   };
 
@@ -117,7 +123,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
         tickMargin={10}
         tickFormatter={tickFormatter}
-        interval={view === 'Day' ? 7 : 0}
+        interval={view === 'Day' ? 7 : view === 'Month' ? 1 : 0}
       />
       <YAxis
         width={45}
@@ -143,7 +149,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
         }
         content={() => null}
         isAnimationActive={true}
-        animationDuration={350}
+        animationDuration={300}
         wrapperStyle={{ pointerEvents: 'none', outline: 'none' }}
       />
       {nowTimestamp && view === 'Day' && (
@@ -183,7 +189,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
               fillOpacity={1}
               fill="url(#colorPrice)"
               isAnimationActive={true}
-              animationDuration={350}
+              animationDuration={300}
               dot={false}
               connectNulls={true}
               activeDot={{
@@ -200,7 +206,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
               dataKey="displayPrice"
               radius={[1, 1, 0, 0]}
               isAnimationActive={true}
-              animationDuration={350}
+              animationDuration={300}
               shape={(
                 props: React.ComponentProps<typeof Rectangle> & { timestampKey?: number },
               ) => (

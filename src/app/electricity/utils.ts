@@ -82,7 +82,7 @@ export function getFormattedData(
         relativeKey: index,
         formattedTime: format(day, 'd.M.'),
         timestampKey: ts,
-        fullDate: format(day, 'eeee d.M.yyyy', { locale: enGB }),
+        fullDate: format(day, 'd.M.yyyy', { locale: enGB }),
       };
     });
   }
