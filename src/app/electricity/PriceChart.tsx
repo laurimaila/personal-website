@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import {
   CartesianGrid,
   XAxis,
@@ -13,6 +15,8 @@ import {
   Bar,
   ReferenceLine,
   Rectangle,
+  type BarRectangleItem,
+  type BarShapeProps,
 } from 'recharts';
 import { ViewType, FormattedPoint } from './types';
 
@@ -29,6 +33,8 @@ export const PriceChart = React.memo(function PriceChartDisplay({
   view,
   setActivePoint,
 }: PriceChartDisplayProps) {
+  const router = useRouter();
+
   const chartData = useMemo(() => {
     if (formattedData.length === 0 || view !== 'Day') return formattedData;
     const lastPoint = formattedData[formattedData.length - 1];
@@ -37,6 +43,19 @@ export const PriceChart = React.memo(function PriceChartDisplay({
       { ...lastPoint, timestampKey: lastPoint.timestampKey + 15 * 60 * 1000 },
     ];
   }, [formattedData, view]);
+
+  const handleBarClick = useCallback(
+    (data: BarRectangleItem & { timestampKey?: number }) => {
+      if (!data?.timestampKey) return;
+      const date = new Date(data.timestampKey);
+      if (view === 'Year') {
+        router.push(`/electricity/month/${format(date, 'yyyy-MM')}`);
+      } else if (view === 'Month') {
+        router.push(`/electricity/day/${format(date, 'yyyy-MM-dd')}`);
+      }
+    },
+    [view, router],
+  );
 
   const onMouseMove = useCallback(
     (e: { activeTooltipIndex?: number | string | null }) => {
@@ -144,8 +163,8 @@ export const PriceChart = React.memo(function PriceChartDisplay({
       <Tooltip
         cursor={
           view === 'Day'
-            ? { stroke: 'hsl(var(--tertiary) / 0.7)', strokeWidth: 2 }
-            : { fill: 'hsl(var(--tertiary) / 0.2)' }
+            ? { stroke: 'hsl(var(--primary-foreground) / 0.8)', strokeWidth: 2 }
+            : { fill: 'hsl(var(--primary-foreground) / 0.2)' }
         }
         content={() => null}
         isAnimationActive={true}
@@ -155,7 +174,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
       {nowTimestamp && view === 'Day' && (
         <ReferenceLine
           x={nowTimestamp}
-          stroke="hsl(var(--primary-foreground) / 0.7)"
+          stroke="hsl(var(--tertiary) / 0.8)"
           strokeWidth={2}
           strokeDasharray="5 5"
         />
@@ -193,7 +212,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
               dot={false}
               connectNulls={true}
               activeDot={{
-                fill: 'hsl(var(--tertiary) / 0.7)',
+                fill: 'hsl(var(--primary-foreground) / 0.7)',
                 strokeWidth: 0,
                 r: 4,
               }}
@@ -207,18 +226,25 @@ export const PriceChart = React.memo(function PriceChartDisplay({
               radius={[1, 1, 0, 0]}
               isAnimationActive={true}
               animationDuration={300}
-              shape={(
-                props: React.ComponentProps<typeof Rectangle> & { timestampKey?: number },
-              ) => (
-                <Rectangle
-                  {...props}
-                  fill={
-                    props.timestampKey === nowTimestamp
-                      ? 'hsl(var(--primary-foreground) / 0.7)'
-                      : 'hsl(var(--primary))'
-                  }
-                  radius={[1, 1, 0, 0]}
-                />
+              shape={(props: BarShapeProps & { timestampKey?: number }) => (
+                <g onClick={() => handleBarClick(props)}>
+                  <Rectangle
+                    {...props}
+                    fill={
+                      props.timestampKey === nowTimestamp
+                        ? 'hsl(var(--tertiary) / 0.7)'
+                        : 'hsl(var(--primary) / 0.7)'
+                    }
+                    radius={[1, 1, 0, 0]}
+                  />
+                  <rect
+                    x={(props.background as { x?: number })?.x}
+                    y={(props.background as { y?: number })?.y}
+                    width={(props.background as { width?: number })?.width}
+                    height={(props.background as { height?: number })?.height}
+                    fill="transparent"
+                  />
+                </g>
               )}
             />
           </BarChart>
