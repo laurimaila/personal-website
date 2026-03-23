@@ -1,11 +1,13 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
+//import { Button } from '@/components/ui/button';
+//import { Moon, Sun } from 'lucide-react';
+//import { useTheme } from 'next-themes';
 
 export const DarkModeToggle = () => {
-  const { setTheme, theme } = useTheme();
+  // const { setTheme, theme } = useTheme();
 
+  return null;
+  /*
   return (
     <Button
       variant="ghost"
@@ -16,4 +18,5 @@ export const DarkModeToggle = () => {
       <Moon className="absolute h-6 w-6 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
     </Button>
   );
+  */
 };

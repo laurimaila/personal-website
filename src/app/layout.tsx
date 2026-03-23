@@ -38,7 +38,11 @@ export default function RootLayout({
           'bg-background m-auto min-h-screen max-w-6xl font-sans antialiased',
           fontSans.variable,
         )}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          forcedTheme="dark">
           <Header />
           <main className="min-h-[70vh] md:min-h-[65vh]">{children}</main>
           <Footer />

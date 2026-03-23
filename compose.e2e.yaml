@@ -8,10 +8,10 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
       - POSTGRES_HOST=db
-      - POSTGRES_DB=test-db
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - CONNECTION_STRING=Host=db;Database=test-db;Username=root;Password=root
+      - POSTGRES_DB=e2e-pg-db
+      - POSTGRES_USER=e2e-pg-user
+      - POSTGRES_PASSWORD=e2e-pg-password
+      - CONNECTION_STRING=Host=db;Database=e2e-pg-db;Username=e2e-pg-user;Password=e2e-pg-password
       - PHYSICS_SVC_URL=http://physics-svc:50051
       - JWT_SECRET_KEY=uq9MU4Jng5HpHPu3L3VpL0cYfeAYCmzWeYh2vn1Qxmi
       - JWT_EXPIRY_HOURS=24
@@ -33,9 +33,9 @@ services:
   migration-svc:
     image: ghcr.io/laurimaila/liquibase-svc:latest
     environment:
-      - JDBC_URL=jdbc:postgresql://db:5432/test-db
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_USER=root
+      - JDBC_URL=jdbc:postgresql://db:5432/e2e-pg-db
+      - POSTGRES_PASSWORD=e2e-pg-password
+      - POSTGRES_USER=e2e-pg-user
     depends_on:
       db:
         condition: service_healthy
@@ -45,11 +45,11 @@ services:
     volumes: # Store data in a named docker volume
       - personal-website-data-e2e:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_USER=root
-      - POSTGRES_DB=test-db
+      - POSTGRES_PASSWORD=e2e-pg-password
+      - POSTGRES_USER=e2e-pg-user
+      - POSTGRES_DB=e2e-pg-db
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U root -d test-db']
+      test: ['CMD-SHELL', 'pg_isready -U e2e-pg-user -d e2e-pg-db']
       interval: 5s
       timeout: 5s
       retries: 5
