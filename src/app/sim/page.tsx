@@ -51,7 +51,7 @@ export default function PhysicsPage() {
                 id="sigma"
                 value={inputs.sigma}
                 onChange={(e) => setInputs({ ...inputs, sigma: e.target.value })}
-                className="w-24 border-zinc-700"
+                className="border-border w-24"
               />
             </div>
             <div className="flex flex-col items-center space-y-2">
@@ -60,7 +60,7 @@ export default function PhysicsPage() {
                 id="rho"
                 value={inputs.rho}
                 onChange={(e) => setInputs({ ...inputs, rho: e.target.value })}
-                className="w-24 border-zinc-700"
+                className="border-border w-24"
               />
             </div>
             <div className="flex flex-col items-center space-y-2">
@@ -69,7 +69,7 @@ export default function PhysicsPage() {
                 id="beta"
                 value={inputs.beta}
                 onChange={(e) => setInputs({ ...inputs, beta: e.target.value })}
-                className="w-24 border-zinc-700"
+                className="border-border w-24"
               />
             </div>
             <Button onClick={handleUpdate} className="mx-auto w-24">
@@ -81,7 +81,7 @@ export default function PhysicsPage() {
             <CardDescription>
               <a
                 href="https://en.wikipedia.org/wiki/Lorenz_system"
-                className="text-blue-500 hover:underline">
+                className="text-primary hover:underline">
                 The Lorenz system
               </a>{' '}
               is a set of three ordinary differential equations first developed by Edward Lorenz

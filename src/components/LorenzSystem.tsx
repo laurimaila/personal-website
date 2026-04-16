@@ -100,7 +100,7 @@ function CameraLogger() {
 
   return (
     <Html fullscreen style={{ pointerEvents: 'none' }}>
-      <div ref={ref} className="absolute bottom-4 left-4 font-mono text-xs text-zinc-500" />
+      <div ref={ref} className="text-muted-foreground absolute bottom-4 left-4 font-mono text-xs" />
     </Html>
   );
 }

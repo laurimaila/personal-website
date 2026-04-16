@@ -14,7 +14,7 @@ export const BlogPostNavigation = ({
   }
 
   return (
-    <nav className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+    <nav className="border-border mt-12 border-t pt-8">
       <div className="flex items-center justify-center gap-5">
         {/* Previous/Newer  */}
         <div className="max-w-sm flex-1">
@@ -22,11 +22,11 @@ export const BlogPostNavigation = ({
             <Link
               href={`/blog/${prevPost.slug}`}
               rel="prev"
-              className="group flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700">
-              <ChevronLeft className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300" />
+              className="group border-border hover:border-muted-foreground flex items-center gap-3 rounded-lg border p-4 transition-colors">
+              <ChevronLeft className="text-muted-foreground group-hover:text-foreground h-5 w-5 transition-colors" />
               <div className="text-left">
-                <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Newer Post</p>
-                <h3 className="line-clamp-2 font-medium text-gray-900 transition-colors group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+                <p className="text-muted-foreground mb-1 text-sm">Newer Post</p>
+                <h3 className="text-foreground group-hover:text-primary line-clamp-2 font-medium transition-colors">
                   {prevPost.title}
                 </h3>
               </div>
@@ -42,14 +42,14 @@ export const BlogPostNavigation = ({
             <Link
               href={`/blog/${nextPost.slug}`}
               rel="next"
-              className="group flex items-center justify-end gap-3 rounded-lg border border-gray-200 p-4 text-right transition-colors hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700">
+              className="group border-border hover:border-muted-foreground flex items-center justify-end gap-3 rounded-lg border p-4 text-right transition-colors">
               <div className="text-right">
-                <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">Older Post</p>
-                <h3 className="line-clamp-2 font-medium text-gray-900 transition-colors group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+                <p className="text-muted-foreground mb-1 text-sm">Older Post</p>
+                <h3 className="text-foreground group-hover:text-primary line-clamp-2 font-medium transition-colors">
                   {nextPost.title}
                 </h3>
               </div>
-              <ChevronRight className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300" />
+              <ChevronRight className="text-muted-foreground group-hover:text-foreground h-5 w-5 transition-colors" />
             </Link>
           ) : (
             <div className="p-4"></div>

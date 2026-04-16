@@ -72,7 +72,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
 
   const tickFormatter = useCallback(
     (val: number) => {
-      if (view === 'Day') return new Date(val).getHours().toString();
+      if (view === 'Day') return `${new Date(val).getHours()}:00`;
       if (view === 'Year') return new Date(val).toLocaleString('default', { month: 'short' });
       return formattedData.find((d) => d.timestampKey === val)?.formattedTime ?? '';
     },
@@ -108,12 +108,46 @@ export const PriceChart = React.memo(function PriceChartDisplay({
     return ticks;
   }, [formattedData]);
 
+  const responsiveTick = useCallback(
+    ({ x, y, payload }: { x: string | number; y: string | number; payload: { value: number } }) => {
+      const label = tickFormatter(payload.value);
+      return (
+        <g transform={`translate(${x},${y})`}>
+          {/* vertical x-ticks on mobile */}
+          <text
+            x={0}
+            y={0}
+            dy={4}
+            textAnchor="end"
+            className="md:hidden"
+            fill="hsl(var(--foreground))"
+            fontSize={12}
+            transform="rotate(-90)">
+            {label}
+          </text>
+          {/* horizontal x-ticks on desktop */}
+          <text
+            x={0}
+            y={0}
+            dy={16}
+            textAnchor="middle"
+            className="hidden md:block"
+            fill="hsl(var(--foreground))"
+            fontSize={13}>
+            {label}
+          </text>
+        </g>
+      );
+    },
+    [tickFormatter],
+  );
+
   const commonProps = {
     data: chartData,
     onMouseMove,
     onTouchMove: onMouseMove,
     onTouchStart: onMouseMove,
-    margin: { top: 10, right: 10, left: 10, bottom: 0 },
+    margin: { top: 10, right: 10, left: 10, bottom: 45 },
   };
 
   const commonAxes = (
@@ -139,16 +173,15 @@ export const PriceChart = React.memo(function PriceChartDisplay({
         }
         axisLine={false}
         tickLine={false}
-        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-        tickMargin={10}
-        tickFormatter={tickFormatter}
+        tick={responsiveTick}
+        tickMargin={5}
         interval={view === 'Day' ? 7 : view === 'Month' ? 1 : 0}
       />
       <YAxis
         width={45}
         axisLine={false}
         tickLine={false}
-        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+        tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
         tickFormatter={(value) => `${value}`}
         domain={[yTicks[0], yTicks[yTicks.length - 1]]}
         ticks={yTicks}
@@ -157,7 +190,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
           angle: -90,
           position: 'insideLeft',
           offset: 10,
-          style: { fill: 'hsl(var(--muted-foreground))', fontSize: 13 },
+          style: { fill: 'hsl(var(--foreground))', fontSize: 13 },
         }}
       />
       <Tooltip
@@ -174,7 +207,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
       {nowTimestamp && view === 'Day' && (
         <ReferenceLine
           x={nowTimestamp}
-          stroke="hsl(var(--tertiary) / 0.8)"
+          stroke="hsl(var(--highlight) / 0.8)"
           strokeWidth={2}
           strokeDasharray="5 5"
         />
@@ -232,7 +265,7 @@ export const PriceChart = React.memo(function PriceChartDisplay({
                     {...props}
                     fill={
                       props.timestampKey === nowTimestamp
-                        ? 'hsl(var(--tertiary) / 0.7)'
+                        ? 'hsl(var(--highlight) / 0.7)'
                         : 'hsl(var(--primary) / 0.7)'
                     }
                     radius={[1, 1, 0, 0]}
