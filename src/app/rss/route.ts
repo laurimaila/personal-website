@@ -1,4 +1,4 @@
-export const revalidate = 3600; // 1 hour
+export const dynamic = 'force-dynamic';
 
 import { config } from '@/config';
 import { getPosts } from '@/lib/directus';

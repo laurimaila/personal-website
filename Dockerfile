@@ -12,9 +12,9 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .
 
-ARG NEXT_PUBLIC_BASE_URL
-ARG NEXT_PUBLIC_DIRECTUS_URL
-ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_BASE_URL=__PLACEHOLDER_BASE_URL__
+ARG NEXT_PUBLIC_DIRECTUS_URL=https://cms2.laurimaila.com
+ARG NEXT_PUBLIC_BACKEND_URL=__PLACEHOLDER_BACKEND_URL__
 ARG NEXT_PUBLIC_APP_VERSION
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -41,7 +41,8 @@ RUN mkdir .next && chown nextjs:nodejs .next
 
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --chmod=755 entrypoint.sh ./
 
 USER nextjs
 
-CMD ["node", "server.js"]
+CMD ["/app/entrypoint.sh"]

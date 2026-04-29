@@ -29,7 +29,9 @@ export async function getHourlyPrices(startDate: Date, endDate: Date): Promise<P
       priceVat: row.priceVatCentKwh ? parseFloat(row.priceVatCentKwh) : null,
     }));
   } catch (error) {
-    console.error('getHourlyPrices failed:', error);
+    const cause =
+      error instanceof Error && error.cause instanceof Error ? error.cause.message : String(error);
+    console.warn('getHourlyPrices failed:', cause);
     return [];
   }
 }
@@ -62,7 +64,9 @@ export async function getDailyPrices(startDate: Date, endDate: Date): Promise<Pr
       priceVat: row.avgPriceVatCentKwh ? parseFloat(row.avgPriceVatCentKwh) : null,
     }));
   } catch (error) {
-    console.error('getDailyPrices failed:', error);
+    const cause =
+      error instanceof Error && error.cause instanceof Error ? error.cause.message : String(error);
+    console.warn('getDailyPrices failed:', cause);
     return [];
   }
 }
@@ -95,7 +99,9 @@ export async function getMonthlyPrices(startDate: Date, endDate: Date): Promise<
       priceVat: row.avgPriceVatCentKwh ? parseFloat(row.avgPriceVatCentKwh) : null,
     }));
   } catch (error) {
-    console.error('getMonthlyPrices failed:', error);
+    const cause =
+      error instanceof Error && error.cause instanceof Error ? error.cause.message : String(error);
+    console.warn('getMonthlyPrices failed:', cause);
     return [];
   }
 }
