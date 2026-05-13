@@ -62,6 +62,7 @@ const ChatPage = () => {
     const websocket = chatApi.createWebSocket();
 
     if (!websocket) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Failed to create WebSocket connection');
       return;
     }

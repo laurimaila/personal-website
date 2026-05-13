@@ -75,15 +75,5 @@
     "vite": "^8.0.12",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.6"
-  },
-  "pnpm": {
-    "overrides": {
-      "flatted": ">=3.4.2"
-    },
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "unrs-resolver"
-    ]
   }
 }
