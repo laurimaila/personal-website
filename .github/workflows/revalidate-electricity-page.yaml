@@ -1,0 +1,14 @@
+name: Revalidate electricity price page daily
+
+on:
+  schedule:
+    - cron: '5 22 * * *' # 00:05 UTC+2 / 01:05 UTC+3
+  workflow_dispatch:
+
+jobs:
+  revalidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Revalidate /electricity
+        run: |
+          curl -f "${{ vars.PRODUCTION_URL }}/api/revalidate?token=${{ secrets.REVALIDATE_TOKEN }}&path=/electricity&type=layout"
