@@ -24,7 +24,18 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
+      - name: Start Docker Compose
+        run: docker compose -f compose.e2e.yaml up -d
+
+      - name: Cache node_modules
+        id: node-modules-cache
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install deps
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Cache nextjs build
@@ -54,7 +65,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps
 
-      - name: Start Docker Compose
+      - name: Wait for Docker Compose
         run: docker compose -f compose.e2e.yaml up -d --wait
 
       - name: Run E2E tests
