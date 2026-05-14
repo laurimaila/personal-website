@@ -1,24 +1,31 @@
 'use client';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthForm } from '@/components/AuthForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
-import type { User } from '@/lib/api/authApi';
 import { chatApi } from '@/lib/api/chatApi';
-import type { ChatMessage, WebSocketError, WebSocketPayload } from '@/lib/api/chatApi.ts';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Trash2 } from 'lucide-react';
+import { MessageReactions } from './MessageReactions';
+import { handleWebSocketMessage } from './chatWebSocket';
+
+import type { User } from '@/lib/api/authApi';
+import type { ChatMessage } from '@/lib/api/chatApi';
 
 const ChatPage = () => {
-  const { user, isLoading: authLoading, logout } = useAuth();
+  const { user, isLoading: authLoading, logout, updateColor } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
+  const [previewColor, setPreviewColor] = useState<string | undefined>(undefined);
+  const [reactionPickerFor, setReactionPickerFor] = useState<number | null>(null);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -53,7 +60,8 @@ const ChatPage = () => {
     if (messages.length > 0) {
       setTimeout(scrollToBottom, 100);
     }
-  }, [messages]);
+    // scroll only on new messages, not when e.g. reactions update
+  }, [messages.length]);
 
   // WebSocket functionality
   useEffect(() => {
@@ -72,29 +80,7 @@ const ChatPage = () => {
       setError(null);
     };
 
-    websocket.onmessage = (event) => {
-      try {
-        const data: WebSocketPayload<ChatMessage | WebSocketError> = JSON.parse(event.data);
-        //console.log('Received from WebSocket:', data);
-
-        switch (data.type) {
-          case 'message':
-            setMessages((prev) => [...prev, data.payload as ChatMessage]);
-            break;
-          case 'error':
-            const errorPayload = data.payload as WebSocketError;
-            setError(errorPayload.message);
-            //console.error('Message error:', errorPayload.message);
-            break;
-          case 'status':
-            break;
-          default:
-            console.warn('Unknown message type:', data.type);
-        }
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }
-    };
+    websocket.onmessage = (event) => handleWebSocketMessage(event, setMessages, setError);
 
     websocket.onerror = (error) => {
       console.error('WebSocket error:', error);
@@ -114,11 +100,10 @@ const ChatPage = () => {
 
   const sendMessage = useCallback(() => {
     if (ws && inputMessage.trim() && connected && user) {
-      const message: Omit<ChatMessage, 'id' | 'createdAt' | 'creator'> = {
+      const message: Pick<ChatMessage, 'content'> = {
         content: inputMessage,
       };
       ws.send(JSON.stringify(message));
-      //console.log('Sent to WebSocket:', message);
       setInputMessage('');
     }
   }, [ws, inputMessage, connected, user]);
@@ -127,6 +112,33 @@ const ChatPage = () => {
     if (e.key === 'Enter') {
       sendMessage();
     }
+  };
+
+  const handleDeleteMessage = async (id: number) => {
+    if (!confirm('Delete this message?')) return;
+    try {
+      await chatApi.deleteMessage(id);
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+    }
+  };
+
+  const colorDebounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const color = e.target.value;
+    setPreviewColor(color);
+    clearTimeout(colorDebounceRef.current ?? undefined);
+    colorDebounceRef.current = setTimeout(async () => {
+      try {
+        await updateColor(color);
+      } catch (err) {
+        console.error('Failed to update color:', err);
+      } finally {
+        setPreviewColor(undefined);
+      }
+    }, 600);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -143,13 +155,10 @@ const ChatPage = () => {
   };
 
   const isOwnMessage = (message: ChatMessage, currentUser: User) => {
-    if (currentUser.username == 'Visitor') {
-      return false;
-    }
-    return message.creator === currentUser.username;
+    if (currentUser.username === 'Visitor') return false;
+    return message.creator.id === currentUser.id;
   };
 
-  // Show loading spinner while checking auth
   if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -163,7 +172,9 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="container mx-auto h-[70vh] max-w-2xl px-1 md:px-5">
+    <div
+      className="container mx-auto h-[70vh] max-w-2xl px-1 md:px-5"
+      onClick={() => setReactionPickerFor(null)}>
       <Card className="flex h-full w-full flex-col rounded-lg shadow-md">
         <div className="border-b px-6 py-4">
           <div className="flex items-center justify-between">
@@ -172,8 +183,26 @@ const ChatPage = () => {
               Logout
             </Button>
           </div>
-          <div className="mt-2 flex justify-between">
-            <span className="text-sm">Chatting as: {user.username}</span>
+          <div className="mt-1 flex justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Chatting as: {user.username}</span>
+              <button
+                title="Change your color"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  colorInputRef.current?.click();
+                }}
+                className="h-4 w-4 rounded border border-current"
+                style={{ backgroundColor: previewColor ?? user.nameColor ?? '#6366f1' }}
+              />
+              <input
+                ref={colorInputRef}
+                type="color"
+                className="sr-only"
+                defaultValue={user.nameColor ?? '#6366f1'}
+                onChange={handleColorChange}
+              />
+            </div>
             <span className={`text-sm ${connected ? 'text-primary' : 'text-destructive'}`}>
               {connected ? 'Connected' : 'Disconnected'}
             </span>
@@ -194,24 +223,46 @@ const ChatPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {messages.map((message, index) => (
-                <Card
-                  key={index}
-                  className={`p-3 ${
-                    isOwnMessage(message, user)
-                      ? 'bg-primary text-primary-foreground ml-auto'
-                      : 'bg-secondary text-secondary-foreground'
-                  } max-w-[95%] wrap-break-word md:max-w-[80%]`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="max-w-[60%] text-sm font-semibold break-all">
-                      {isOwnMessage(message, user) ? 'You' : message.creator}
-                    </span>
-                    {message.createdAt && (
-                      <span className={`text-xs`}>{formatTimestamp(message.createdAt)}</span>
-                    )}
-                  </div>
-                  <p className="mt-1">{message.content}</p>
-                </Card>
+              {messages.map((message) => (
+                <div key={message.id} className="flex flex-col">
+                  <Card
+                    className={`bg-secondary text-secondary-foreground max-w-[95%] p-3 wrap-break-word md:max-w-[80%] ${isOwnMessage(message, user) ? 'ml-auto' : ''}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className="max-w-[60%] text-sm font-semibold break-all"
+                        style={
+                          message.creator.nameColor
+                            ? { color: message.creator.nameColor }
+                            : undefined
+                        }>
+                        {message.creator.username}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {message.createdAt && (
+                          <span className="text-xs">{formatTimestamp(message.createdAt)}</span>
+                        )}
+                        {isOwnMessage(message, user) && (
+                          <button
+                            onClick={() => handleDeleteMessage(message.id)}
+                            className="text-muted-foreground hover:text-foreground ml-1 opacity-60 hover:opacity-100"
+                            title="Delete message">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="mt-1">{message.content}</p>
+                  </Card>
+
+                  <MessageReactions
+                    messageId={message.id}
+                    reactions={message.reactions}
+                    currentUserId={user.id}
+                    align={isOwnMessage(message, user) ? 'right' : 'left'}
+                    pickerOpen={reactionPickerFor === message.id}
+                    onPickerChange={(open) => setReactionPickerFor(open ? message.id : null)}
+                  />
+                </div>
               ))}
             </div>
           )}

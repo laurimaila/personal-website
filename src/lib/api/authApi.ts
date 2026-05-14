@@ -1,6 +1,7 @@
 interface User {
-  id: string;
+  id: number;
   username: string;
+  nameColor?: string;
 }
 
 interface LoginRequest {
@@ -109,6 +110,15 @@ export const authApi = {
       console.error('Auth check failed:', error);
       return null;
     }
+  },
+
+  async updateColor(color: string): Promise<User> {
+    const response = await apiFetch('/api/auth/me/color', {
+      method: 'PATCH',
+      body: JSON.stringify({ color }),
+    });
+
+    return handleResponse<User>(response, 'Failed to update color');
   },
 
   async logout(): Promise<void> {

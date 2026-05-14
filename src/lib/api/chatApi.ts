@@ -1,8 +1,17 @@
+import type { User } from './authApi';
+
+export interface Reaction {
+  emoji: string;
+  user: User;
+}
+
 export interface ChatMessage {
   id: number;
   content: string;
-  creator?: string;
   createdAt: string;
+  modifiedAt?: string | null;
+  creator: User;
+  reactions?: Reaction[];
 }
 
 export interface WebSocketError {
@@ -10,8 +19,19 @@ export interface WebSocketError {
   message: string;
 }
 
+export interface DeletePayload {
+  id: number;
+}
+
+export interface ReactionPayload {
+  messageId: number;
+  emoji: string;
+  isRemoved: boolean;
+  user: User;
+}
+
 export interface WebSocketPayload<T> {
-  type: 'message' | 'error' | 'status';
+  type: 'message' | 'error' | 'status' | 'delete' | 'reaction';
   payload: T;
 }
 
@@ -20,7 +40,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const handleApiResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
   const contentType = response.headers.get('content-type');
@@ -73,6 +93,41 @@ export const chatApi = {
         throw error;
       }
       throw new Error('Failed to fetch chat messages');
+    }
+  },
+
+  async deleteMessage(id: number): Promise<void> {
+    try {
+      const response = await apiFetch(`/api/messages/${id}`, { method: 'DELETE' });
+      await handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Failed to delete message');
+    }
+  },
+
+  async addReaction(messageId: number, emoji: string): Promise<void> {
+    try {
+      const response = await apiFetch(`/api/messages/${messageId}/reactions`, {
+        method: 'POST',
+        body: JSON.stringify({ emoji }),
+      });
+      await handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Failed to add reaction');
+    }
+  },
+
+  async removeReaction(messageId: number): Promise<void> {
+    try {
+      const response = await apiFetch(`/api/messages/${messageId}/reactions`, {
+        method: 'DELETE',
+      });
+      await handleApiResponse<void>(response);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Failed to remove reaction');
     }
   },
 

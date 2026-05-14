@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateColor: (color: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +60,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Update username color for logged in user
+  const updateColor = async (color: string) => {
+    const updated = await authApi.updateColor(color);
+    setUser((prev) => (prev ? { ...prev, ...updated } : updated));
+  };
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -75,7 +82,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, checkAuth }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, register, logout, checkAuth, updateColor }}>
       {children}
     </AuthContext.Provider>
   );
