@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { chatApi } from '@/lib/api/chatApi';
 import { Trash2 } from 'lucide-react';
 import { MessageReactions } from './MessageReactions';
-import { handleWebSocketMessage } from './chatWebSocket';
+import { useChatWebSocket } from './useChatWebSocket';
 
 import type { User } from '@/lib/api/authApi';
 import type { ChatMessage } from '@/lib/api/chatApi';
@@ -19,10 +19,10 @@ const ChatPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState('');
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
   const [previewColor, setPreviewColor] = useState<string | undefined>(undefined);
   const [reactionPickerFor, setReactionPickerFor] = useState<number | null>(null);
+
+  const { connected, send } = useChatWebSocket(user ?? null, setMessages, setError);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -63,50 +63,12 @@ const ChatPage = () => {
     // scroll only on new messages, not when e.g. reactions update
   }, [messages.length]);
 
-  // WebSocket functionality
-  useEffect(() => {
-    if (!user) return;
-
-    const websocket = chatApi.createWebSocket();
-
-    if (!websocket) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError('Failed to create WebSocket connection');
-      return;
-    }
-
-    websocket.onopen = () => {
-      setConnected(true);
-      setError(null);
-    };
-
-    websocket.onmessage = (event) => handleWebSocketMessage(event, setMessages, setError);
-
-    websocket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setError('Connection error occurred');
-    };
-
-    websocket.onclose = () => {
-      setConnected(false);
-    };
-
-    setWs(websocket);
-
-    return () => {
-      websocket.close();
-    };
-  }, [user]);
-
   const sendMessage = useCallback(() => {
-    if (ws && inputMessage.trim() && connected && user) {
-      const message: Pick<ChatMessage, 'content'> = {
-        content: inputMessage,
-      };
-      ws.send(JSON.stringify(message));
+    if (connected && inputMessage.trim()) {
+      send(inputMessage);
       setInputMessage('');
     }
-  }, [ws, inputMessage, connected, user]);
+  }, [connected, inputMessage, send]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

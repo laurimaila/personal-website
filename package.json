@@ -11,21 +11,20 @@
     "start": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
     "test": "vitest --config ./config/vitest.config.mts",
     "test:e2e": "playwright test --config=config/playwright.config.ts",
-    "lint": "prettier --check . && eslint",
+    "lint": "prettier --config config/.prettierrc --ignore-path config/.prettierignore --check . && eslint --config config/eslint.config.mjs",
     "prepare": "husky",
     "lint-staged": "lint-staged",
     "analyze": "next experimental-analyze"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "eslint --fix",
-    "**/*": "prettier --write --ignore-unknown"
+    "*.{js,jsx,ts,tsx}": "eslint --config config/eslint.config.mjs --fix",
+    "**/*": "prettier --config config/.prettierrc --ignore-path config/.prettierignore --write --ignore-unknown"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@directus/sdk": "^21.3.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@types/three": "^0.183.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -43,7 +42,6 @@
     "recharts": "^3.8.1",
     "rss": "^1.2.2",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss-animate": "^1.0.7",
     "three": "^0.183.2",
     "url-join": "^5.0.0"
   },
@@ -53,10 +51,10 @@
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.4",
-    "@types/pg": "^8.20.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@types/rss": "^0.0.32",
+    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^6.0.1",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.27.7",
@@ -71,6 +69,7 @@
     "prettier-plugin-tailwindcss": "^0.7.4",
     "schema-dts": "^1.1.5",
     "tailwindcss": "^4.3.0",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
     "vite": "^8.0.12",
     "vite-tsconfig-paths": "^5.1.4",

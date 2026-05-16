@@ -1,7 +1,7 @@
 import { chatApi } from '@/lib/api/chatApi';
 import type { ChatMessage, Reaction, ReactionPayload } from '@/lib/api/chatApi';
 
-export const REACTION_EMOJIS = ['👍', '👎', '😁', '😢', '❤️', '✅'] as const;
+export const REACTION_EMOJIS = ['👍', '👎', '😁', '😢', '🥴', '❤️', '✅'] as const;
 
 export const reactionGroups = (reactions: ChatMessage['reactions'], currentUserId: number) => {
   // Groups array of reactions by emoji, shows count and if current user reacted with that emoji

@@ -9,6 +9,6 @@ test('chat registration and message flow', async ({ page }) => {
   await registerUser(page, username, password);
   await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible({ timeout: 5000 });
 
-  const testMessage = `What a great teast message, ${timestamp}`;
+  const testMessage = `What a great test message, ${timestamp}`;
   await sendMessage(page, testMessage);
 });
